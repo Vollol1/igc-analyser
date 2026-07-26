@@ -1,0 +1,12 @@
+# igc-extractor Python dependencies
+
+# Web scraping and HTTP client
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+lxml>=5.2.0
+
+# Environment variable loading (optional, for local .env workflow)
+python-dotenv>=1.0.0
+
+# Progress bars (optional, for nicer CLI output on long-running batches)
+tqdm>=4.66.0
