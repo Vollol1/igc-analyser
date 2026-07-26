@@ -20,9 +20,11 @@ igc-extractor/
 │   ├── logs/                 # Laufzeit-Logs
 │   └── igc_extractor.db      # SQLite-Statusdatenbank (Resume / Idempotenz)
 ├── docs/
-│   └── decisions/            # Architecture Decision Records (ADRs)
+│   ├── decisions/            # Architecture Decision Records (ADRs)
+│   └── notes/                # Research notes (e.g. dhv-xc API analysis)
 ├── scripts/
-│   └── igc_extractor.py      # Einstiegspunkt der CLI
+│   ├── igc_extractor.py    # Einstiegspunkt der CLI
+│   └── list_flights.py     # Flight list extraction → JSONL
 ├── .env.example              # Beispiel-Konfiguration (keine echten Werte)
 ├── .gitignore                # Ausschluss von .env, venv, Logs, DBs, IGCs …
 ├── requirements.txt          # Python-Abhängigkeiten
@@ -105,6 +107,19 @@ igc-extractor/
   --pilot-id 12345 \
   --flights 50
 ```
+
+### Flugliste als JSONL extrahieren
+
+```bash
+/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
+  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/list_flights.py
+```
+
+Dieses Skript meldet sich an, liest mit den Filtern *Nur meine Flüge* / *Private
+Flüge einschließen* alle eigenen Flüge aus und schreibt sie idempotent nach
+`data/processed/flights.jsonl`. Pro Flug werden ID, Datum, Startplatz, Gleitschirm,
+Best-Task-Distanz, Flugdauer und die IGC-Download-URL gespeichert. Läufe werden
+nach `data/logs/list_flights_<run_id>.log` protokolliert.
 
 ## Credentials / Secrets
 
