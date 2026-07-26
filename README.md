@@ -133,6 +133,44 @@ Credentials werden in dieser Reihenfolge aufgelöst (erste Treffer gewinnt):
 - Schreibe keine Passwörter direkt in Python-Dateien oder Shell-Skripte.
 - Sollte ein Secret unbeabsichtigt in die Git-History gelangen: Key sofort rotieren und die History bereinigen (siehe gag-atlas ADR-007).
 
+## Import & Validierung der heruntergeladenen Flüge
+
+Nachdem die `.igc`-Dateien und `flights.jsonl` vorliegen (z. B. durch den Downloader erzeugt), werden sie mit `scripts/import_flights.py` in eine SQLite-Datenbank importiert und minimal validiert.
+
+```bash
+/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python /home/florian/git.vollol.com/fknab/igc-extractor/scripts/import_flights.py
+```
+
+Standardpfade:
+
+- Eingabe: `data/processed/flights.jsonl`
+- IGC-Dateien: `data/igc/`
+- SQLite-DB: `data/igc-extractor.db`
+- Schema: `data/schema.sql`
+- JSON-Export: `data/export/flights_overview.json`
+- Log: `data/logs/import_flights_<run_id>.log`
+
+### Was validiert wird
+
+`import_flights.py` führt eine **strukturelle Minimalvalidierung** durch:
+
+- A-Record (Hersteller-/Seriennummer) muss am Dateianfang stehen.
+- Es muss mindestens ein B-Record (Positionsfix) vorhanden sein.
+- Eine G-Record-Zeile muss am Dateiende stehen.
+- Die Datei muss lesbarer UTF-8-Text sein und eine Mindestgröße überschreiten (50 Byte).
+
+Jeder Flug erhält den Status `valid`, `invalid` oder `missing`.  
+**Hinweis:** Die kryptographische Prüfung der G-Record-Signatur wird **nicht** durchgeführt.
+
+### Ausgabe
+
+Die SQLite-Datenbank enthält die Tabellen:
+
+- `flights` – Flugmetadaten, Hash und Validierungsstatus.
+- `flight_stats` – eine Zeile pro Lauf mit `total`, `valid`, `invalid`, `missing`, `downloaded`.
+
+Zusätzlich wird `data/export/flights_overview.json` mit der Zusammenfassung geschrieben (vergleichbar zu einem statischen Export im gag-atlas-Projekt).
+
 ## Architekturentscheidungen
 
 Die wichtigsten Entscheidungen sind in [docs/decisions/ADR-001-architecture-techstack.md](docs/decisions/ADR-001-architecture-techstack.md) festgehalten:
