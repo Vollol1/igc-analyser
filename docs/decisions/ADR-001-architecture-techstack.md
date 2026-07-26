@@ -57,9 +57,19 @@ igc-extractor soll Paragliding-Flugtracks (`.igc`) von dhv-xc.de herunterladen u
 - Ohne Cloud-Fallback ist die Verarbeitung an lokale Ressourcen gebunden.
 - `.env`-Handling muss bei jedem neuen Mitentwickler kommuniziert werden (siehe gag-atlas ADR-007).
 
+## Agent-Verhalten und Dokumentationsstruktur
+
+Das Projekt folgt einer dokumentationsgetriebenen Arbeitsweise. Für jede Agent-Session gelten die Regeln in [`AGENT_BEHAVIOR_NOTES.md`](../../AGENT_BEHAVIOR_NOTES.md):
+
+- Wichtige technische Entscheidungen werden als ADRs in `docs/decisions/` festgehalten.
+- Session-Learnings werden in `docs/notes/` dokumentiert.
+- `docs/TODO.md` bleibt als lebendige Aufgabenliste gepflegt.
+- Datei-erstellende Tasks müssen mit `--auto-review-enabled true --auto-review-mode commit` erstellt werden, damit Worktree-Ergebnisse nicht verloren gehen.
+
 ## References
 
 - [gag-atlas ADR-007: Secrets-Management](/home/florian/github.com/Vollol1/gag-atlas/docs/decisions/ADR-007-secrets-management.md)
+- [AGENT_BEHAVIOR_NOTES.md](../../AGENT_BEHAVIOR_NOTES.md)
 - [Python requests](https://requests.readthedocs.io/)
 - [BeautifulSoup 4](https://www.crummy.com/software/BeautifulSoup/)
 - [lxml parser](https://lxml.de/)

@@ -181,3 +181,26 @@ Die wichtigsten Entscheidungen sind in [docs/decisions/ADR-001-architecture-tech
 - **`.env`-basierte Secrets**: Credentials ausschließlich über Umgebungsvariablen / `.env`, niemals im Code.
 
 Weitere Architektur-Entscheidungen folgen im Verzeichnis [docs/decisions/](docs/decisions/).
+
+## Agent-Verhalten und Dokumentation
+
+Für jede Agent-Session gelten die Regeln in [`AGENT_BEHAVIOR_NOTES.md`](./AGENT_BEHAVIOR_NOTES.md).  
+Die wichtigsten Dokumentationsbereiche sind:
+
+- [`docs/decisions/`](./docs/decisions/) — Architecture Decision Records (ADRs)
+- [`docs/notes/`](./docs/notes/) — Session-Learnings, API-Beobachtungen, Pipeline-Notizen
+- [`docs/runbooks/`](./docs/runbooks/) — Schritt-für-Schritt-Anleitungen, z. B. IGC-Download
+- [`docs/TODO.md`](./docs/TODO.md) — Lebendige Aufgabenliste
+
+Wichtige Regeln auf einen Blick:
+
+1. Vor jedem Commit `docs/decisions/`, `docs/notes/` und `docs/TODO.md` prüfen/aktualisieren.
+2. Technische Entscheidungen als ADR festhalten.
+3. Session-Learnings in `docs/notes/` dokumentieren.
+4. `docs/TODO.md` lebendig halten.
+5. Agent-Änderungen nur im Worktree; Merge passiert durch Kanban-Workflow.
+6. Lange Tasks nicht im Agent blockieren; stattdessen Hintergrundprozesse + Resume/Logs.
+7. Tests grün vor Commit (wenn Tests existieren).
+8. Kanban-Sidebar-Agent darf Worktree-Ergebnisse ins Haupt-Repo übernehmen, wenn Auto-Review fehlschlägt.
+9. Auto-Review für Datei-erstellende Tasks: `--auto-review-enabled true --auto-review-mode commit` setzen.
+10. Wiederkehrende Muster in `AGENT_BEHAVIOR_NOTES.md` dokumentieren.
