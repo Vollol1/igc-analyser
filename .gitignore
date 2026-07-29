@@ -46,6 +46,9 @@ data/export/*.json
 
 # ── Logs (local runtime artifacts) ────────────────────────────────────────────
 data/logs/*.log
+data/logs/*.json
+data/logs/*.out
+data/logs/*.pid
 !data/logs/.gitkeep
 
 # ── IDE / editor ──────────────────────────────────────────────────────────────
