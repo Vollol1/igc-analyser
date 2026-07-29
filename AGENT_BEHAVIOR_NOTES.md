@@ -127,6 +127,23 @@ pytest tests/
 
 ---
 
+## 11. Sidebar-Agent reviewed, sichert und committet Worktree-Ergebnisse aktiv
+
+**k) Wenn der Nutzer den Kanban-Sidebar-Agent um einen Status-Check bittet oder der aktive Task im Worktree auf `review` steht, soll der Sidebar-Agent eigenständig prüfen, ob die Ergebnisse valide und vollständig sind.**
+
+- Checkliste für den Review:
+  1. `kanban task list` aufrufen, um den aktuellen Stand zu sehen.
+  2. Im Haupt-Repository `git status` / `git diff` prüfen (Worktree-Änderungen werden dorthin gemerged).
+  3. Syntaktische Korrektheit prüfen: `python -m py_compile <geänderte_skripte>` und `--help` Aufrufe.
+  4. Logische Korrektheit prüfen: kleine, zielgerichtete Tests oder Inspektionen, die das Task-Ziel sicherstellen (z. B. JSONL-Schema passt, Client wird korrekt verwendet).
+  5. Dokumentation prüfen: `docs/TODO.md`, `docs/notes/`, `docs/runbooks/` – sind die vom Task berührten Docs konsistent?
+  6. Bei Erfolg: Änderungen ins Haupt-Repository committen und den Task auf `done` setzen, damit verlinkte Folge-Tasks automatisch starten können.
+  7. Bei Fehlern oder Unvollständigkeiten: den Nutzer informieren und keine unvollständigen Ergebnisse committen.
+- Diese Verhaltensweise sichert ab, dass Auto-Review-Fehlschläge oder hängende Worktrees nicht die ganze Kette blockieren.
+- Sie ist explizit erwünscht, wenn der Nutzer danach fragt („wie sieht's aus?“, „bitte reviewn“).
+
+---
+
 ## Quick checklist (copy before committing)
 
 ```markdown
