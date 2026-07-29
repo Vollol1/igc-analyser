@@ -16,13 +16,22 @@ _(keine)_
 
 ## Kurzfristig geplant
 
-- [ ] Login-Mechanismus dokumentieren und robust gegen Token-/Layout-Änderungen machen
-- [ ] Rate-Limiting / Retry-Logik für Downloads ergänzen
+- [x] Login-Mechanismus dokumentieren und robust gegen Token-/Layout-Änderungen machen
+- [x] Rate-Limiting / Retry-Logik für Downloads ergänzen
 - [ ] IGC-Validierung erweitern (G-Record-Signatur optional, C-Record-Checks)
 - [ ] Resume-Logik für fehlgeschlagene Downloads verbessern (`attempts`-Zähler in DB)
 
 ## Erledigt
 
+- [x] `scripts/download_igc.py` repariert
+  - Liest jetzt das JSONL-Schema von `list_flights.py` (`IDFlight`, `FlightDate`, `TakeoffLocation`, `IgcUrl`).
+  - Verwendet den gemeinsamen `DhvXcClient` (`scripts/dhv_xc_client.py`) mit Session-/CSRF-/PHPSESSID-Login statt HTTP-Basic-Auth.
+  - Rate-Limiting (`--rate-limit`) und Retry-Logik (`--max-retries`) bleiben erhalten.
+  - Logs/Summaries werden weiterhin nach `data/logs/` geschrieben.
+- [x] Gemeinsames `scripts/dhv_xc_client.py` aus `list_flights.py` extrahiert
+  - Zentraler authentifizierter Client für Login, Flugliste und IGC-Download.
+- [x] Login-Mechanismus dokumentieren und robust gegen Token-/Layout-Änderungen machen
+- [x] Rate-Limiting / Retry-Logik für Downloads ergänzen
 - [x] Dokumentations- und Agent-Verhaltens-Struktur aus gag-atlas übernommen
   - `AGENT_BEHAVIOR_NOTES.md` im Repo-Root erstellt.
   - `docs/notes/kanban-notes.md` mit Workflow-Beobachtungen erstellt.

@@ -17,14 +17,12 @@ import argparse
 import json
 import logging
 import os
-import re
 import sys
 import uuid
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
-from urllib.parse import urlencode, urljoin
+from urllib.parse import urljoin
 
 import requests
 
@@ -34,19 +32,16 @@ except ImportError:  # pragma: no cover
     def tqdm(iterable, *args, **kwargs):  # type: ignore[no-redef]
         return iterable
 
-try:
-    from dotenv import load_dotenv  # type: ignore
-except ImportError:  # pragma: no cover
-    load_dotenv = None  # type: ignore
+from dhv_xc_client import (
+    DEFAULT_BASE_URL,
+    DhvXcClient,
+    IGC_DOWNLOAD_PATH_TEMPLATE,
+    PAGE_SIZE,
+    load_dotenv_if_available,
+    now_iso,
+)
 
 
-DEFAULT_BASE_URL = "https://www.dhv-xc.de"
-LOGIN_PATH = "/login"
-LOGIN_API_PATH = "/api/xc/login/login"
-FLIGHTS_API_PATH = "/api/fli/flights"
-IGC_DOWNLOAD_PATH_TEMPLATE = "/flight/{id}/igc"
-CSRF_TOKEN_RE = re.compile(r"jc\.token\s*=\s*['\"]([^'\"]+)['\"]")
-PAGE_SIZE = 50
 TARGET_MIN_FLIGHTS = 200
 
 
@@ -72,145 +67,7 @@ def _project_root() -> Path:
 
 
 def _load_dotenv() -> None:
-    if load_dotenv is None:
-        return
-    dotenv_path = _project_root() / ".env"
-    load_dotenv(dotenv_path, override=False)
-
-
-def _now_iso() -> str:
-    return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
-
-
-def _parse_csrf_token(html: str) -> str:
-    match = CSRF_TOKEN_RE.search(html)
-    if not match:
-        raise RuntimeError("Could not extract CSRF token (jc.token) from login page")
-    return match.group(1)
-
-
-def _api_url(base_url: str, path: str, params: Optional[dict[str, Any]] = None) -> str:
-    url = urljoin(base_url, path)
-    if params:
-        url += "?" + urlencode(params, doseq=True)
-    return url
-
-
-def _api_headers(csrf_token: str) -> dict[str, str]:
-    return {
-        "Accept": "application/json",
-        "X-Csrf-Token": csrf_token,
-        "X-Requested-With": "XMLHttpRequest",
-    }
-
-
-class DhvXcClient:
-    """Thin session wrapper around dhv-xc.de's kers.app API."""
-
-    def __init__(self, base_url: str, username: str, password: str) -> None:
-        self.base_url = base_url.rstrip("/")
-        self.username = username
-        self.password = password
-        self.session = requests.Session()
-        self.session.headers.update({
-            "User-Agent": (
-                "igc-extractor/1.0 (private automation; contact: user@example.com)"
-            ),
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Language": "de,en-US;q=0.7,en;q=0.3",
-        })
-        self.csrf_token: Optional[str] = None
-
-    def _request(
-        self,
-        method: str,
-        path: str,
-        params: Optional[dict[str, Any]] = None,
-        data: Optional[dict[str, Any]] = None,
-        files: Optional[dict[str, Any]] = None,
-        json_body: Optional[dict[str, Any]] = None,
-        allow_redirects: bool = True,
-    ) -> requests.Response:
-        url = _api_url(self.base_url, path, params)
-        headers: dict[str, str] = {}
-        if self.csrf_token:
-            headers.update(_api_headers(self.csrf_token))
-        if json_body is not None:
-            headers["Content-Type"] = "application/json"
-
-        resp = self.session.request(
-            method,
-            url,
-            headers=headers,
-            data=data,
-            files=files,
-            json=json_body,
-            allow_redirects=allow_redirects,
-            timeout=60,
-        )
-        resp.raise_for_status()
-        return resp
-
-    def login(self) -> dict[str, Any]:
-        """Authenticate with dhv-xc.de."""
-        login_page = self._request("GET", LOGIN_PATH)
-        self.csrf_token = _parse_csrf_token(login_page.text)
-        logging.info("Fetched login page and CSRF token")
-
-        form_data = {
-            "uid": self.username,
-            "pwd": self.password,
-            "stay": "1",
-            "dhvfetch": "0",
-        }
-        resp = self._request("POST", LOGIN_API_PATH, data=form_data)
-
-        try:
-            payload = resp.json()
-        except ValueError as exc:
-            raise RuntimeError(
-                f"Login response was not JSON (status {resp.status_code}). "
-                "The API endpoint or login flow may have changed."
-            ) from exc
-
-        if not payload.get("success"):
-            meta = payload.get("meta", {})
-            message = payload.get("message") or meta.get("message") or "Unknown login error"
-            code = meta.get("code", 0)
-            raise RuntimeError(f"Login failed (code {code}): {message}")
-
-        meta = payload.get("meta", {})
-        if "token" in meta:
-            self.csrf_token = meta["token"]
-            logging.info("CSRF token refreshed by login response")
-
-        logging.info("Login reported success")
-        return payload
-
-    def get_flight_page(
-        self,
-        start: int = 0,
-        limit: int = PAGE_SIZE,
-    ) -> dict[str, Any]:
-        navpars = {
-            "start": start,
-            "limit": limit,
-            "sort": "FlightDate",
-            "dir": "desc",
-        }
-        params: dict[str, Any] = {
-            "mine": "1",
-            "incpriv": "1",
-            "navpars": json.dumps(navpars, separators=(",", ":")),
-        }
-
-        resp = self._request("GET", FLIGHTS_API_PATH, params=params)
-        try:
-            return resp.json()
-        except ValueError as exc:
-            raise RuntimeError(
-                "Flight list response was not JSON. The API may have changed."
-            ) from exc
+    load_dotenv_if_available()
 
 
 def _flight_duration_minutes(value: Any) -> Optional[int]:
@@ -266,7 +123,7 @@ def _extract_flight(row: dict[str, Any], base_url: str) -> FlightRecord:
         BestTaskDistance=_best_task_distance_km(row.get("BestTaskDistance")),
         FlightDuration=_flight_duration_minutes(row.get("FlightDuration")),
         IgcUrl=urljoin(base_url, IGC_DOWNLOAD_PATH_TEMPLATE.format(id=flight_id)),
-        ExtractedAt=_now_iso(),
+        ExtractedAt=now_iso(),
     )
 
 
@@ -425,6 +282,7 @@ def main(args: Optional[list[str]] = None) -> int:
             break
 
         if total_known is None:
+            meta = page.get("meta", {})
             total_known = page.get("total") or meta.get("total") or len(rows)
             logging.info("Flight API reports up to %s total flights", total_known)
             pbar.total = total_known

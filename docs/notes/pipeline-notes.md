@@ -6,11 +6,12 @@ Lebendiges Notizbuch für Erkenntnisse, Probleme und offene Fragen rund um den D
 
 ## Login-Mechanismus
 
-`scripts/list_flights.py` und `scripts/igc_extractor.py` melden sich bei dhv-xc.de an.
+`scripts/list_flights.py` und `scripts/download_igc.py` melden sich bei dhv-xc.de an. Beide nutzen den gemeinsamen `DhvXcClient` in `scripts/dhv_xc_client.py`.
 
 - **CSRF-Token**: Die Login-Seite liefert `jc.token = '<32-char-hex>'` im HTML-Head. Der Client sendet es als Header `X-Csrf-Token`.
 - **Login-Endpoint**: `POST /api/xc/login/login` mit `uid`, `pwd`, `stay=1`, `dhvfetch=0`.
 - **Session-Cookie**: `PHPSESSID`. Der Server setzt es nach erfolgreichem Login.
+- **IGC-Download-Endpoint**: `GET /flight/{IDFlight}/igc`, ausgeführt über dieselbe authentifizierte Session.
 - **DHV service portal**: Falls das Konto über den DHV-Service-Portal-Flow verknüpft werden muss (`FAILURE_DHVMAPPING_REQUIRED`), ist derzeit nur ein manueller Browser-Login als Workaround möglich.
 
 ### Beobachtungen / Risiken

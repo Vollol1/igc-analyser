@@ -14,16 +14,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
-from urllib.parse import urljoin
 
-
-def _load_dotenv_if_available() -> None:
-    try:
-        from dotenv import load_dotenv  # type: ignore
-        dotenv_path = Path(__file__).resolve().parent.parent / ".env"
-        load_dotenv(dotenv_path, override=False)
-    except ImportError:
-        pass
+from dhv_xc_client import DhvXcClient, load_dotenv_if_available, resolve_credentials
 
 
 def _sanitize_filename(value: str) -> str:
@@ -66,13 +58,13 @@ class Flight:
 
     @classmethod
     def from_record(cls, record: dict[str, Any]) -> "Flight":
-        flight_id = record.get("id") or record.get("flight_id")
+        flight_id = record.get("IDFlight")
         if flight_id is None:
-            raise ValueError("Flight record has no 'id' or 'flight_id' field")
+            raise ValueError("Flight record has no 'IDFlight' field")
         flight_id = int(flight_id)
-        date = record.get("date") or record.get("flight_date")
-        takeoff = record.get("takeoff") or record.get("takeoff_site") or record.get("site")
-        igc_url = record.get("igc_url") or record.get("track_url") or record.get("url")
+        date = record.get("FlightDate")
+        takeoff = record.get("TakeoffLocation")
+        igc_url = record.get("IgcUrl")
         return cls(id=flight_id, date=date, takeoff=takeoff, igc_url=igc_url, raw=record)
 
 
@@ -164,15 +156,7 @@ def _parse_args(args: Optional[list[str]] = None) -> argparse.Namespace:
 
 
 def _resolve_credentials(parsed: argparse.Namespace) -> tuple[str, str]:
-    username = parsed.username or os.environ.get("DHV_XC_USERNAME")
-    password = parsed.password or os.environ.get("DHV_XC_PASSWORD")
-    if not username or not password:
-        raise RuntimeError(
-            "DHV-XC credentials are required. Provide them via .env "
-            "(DHV_XC_USERNAME / DHV_XC_PASSWORD), environment variables, "
-            "or --username / --password. Never commit credentials to Git."
-        )
-    return username, password
+    return resolve_credentials(parsed.username, parsed.password)
 
 
 def _read_flights(path: Path) -> list[Flight]:
@@ -200,18 +184,16 @@ def _needs_download(output_path: Path, force: bool) -> bool:
 
 
 def _download_with_retry(
-    session,
-    url: str,
-    output_path: Path,
+    client: DhvXcClient,
     flight_id: int,
+    output_path: Path,
     max_retries: int,
     logger: logging.Logger,
 ) -> bool:
     last_exception: Optional[Exception] = None
     for attempt in range(1, max_retries + 1):
         try:
-            response = session.get(url, timeout=30)
-            response.raise_for_status()
+            response = client.get_igc(flight_id)
             output_path.parent.mkdir(parents=True, exist_ok=True)
             output_path.write_bytes(response.content)
             if output_path.stat().st_size == 0:
@@ -248,12 +230,12 @@ def _download_with_retry(
 
 def _build_igc_url(base_url: str, flight: Flight) -> str:
     if flight.igc_url:
-        return urljoin(base_url, flight.igc_url)
+        return flight.igc_url
     return f"{base_url.rstrip('/')}/flight/{flight.id}/igc"
 
 
 def main(args: Optional[list[str]] = None) -> int:
-    _load_dotenv_if_available()
+    load_dotenv_if_available()
     parsed = _parse_args(args)
 
     try:
@@ -299,18 +281,13 @@ def main(args: Optional[list[str]] = None) -> int:
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    client = DhvXcClient(parsed.base_url, username, password)
     try:
-        import requests
-    except ImportError as exc:
-        logger.error("Missing required dependency 'requests': %s", exc)
+        client.login()
+        logger.info("Authenticated successfully as %s", username)
+    except RuntimeError as exc:
+        logger.error("Authentication failed: %s", exc)
         return 1
-
-    session = requests.Session()
-    session.auth = (username, password)
-    session.headers.update({
-        "User-Agent": "igc-extractor/1.0 (+https://github.com/Vollol1/igc-extractor)",
-        "Accept": "*/*",
-    })
 
     previous_request_time: Optional[float] = None
 
@@ -346,10 +323,9 @@ def main(args: Optional[list[str]] = None) -> int:
                 time.sleep(sleep_for)
 
         success = _download_with_retry(
-            session=session,
-            url=url,
-            output_path=output_path,
+            client=client,
             flight_id=flight.id,
+            output_path=output_path,
             max_retries=parsed.max_retries,
             logger=logger,
         )

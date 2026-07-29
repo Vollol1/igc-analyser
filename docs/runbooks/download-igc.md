@@ -43,25 +43,7 @@ Schritt-für-Schritt-Anleitung für das Herunterladen von Paragliding-Flugtracks
 
 ---
 
-## 2. Trockenlauf (Dry-Run)
-
-Zeigt, welche Flüge verarbeitet würden, ohne Dateien herunterzuladen.
-
-```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
-  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/igc_extractor.py \
-  --flights 10 \
-  --dry-run
-```
-
-Erwartete Ausgabe:
-- Anzahl der gefundenen Flüge.
-- Liste der geplanten Downloads.
-- Keine neuen Dateien in `data/igc/`.
-
----
-
-## 3. Flugliste extrahieren
+## 2. Flugliste extrahieren
 
 ```bash
 /home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
@@ -72,39 +54,57 @@ Ausgabe:
 - `data/processed/flights.jsonl` mit allen gefundenen Flügen.
 - Log unter `data/logs/list_flights_<run_id>.log`.
 
-Dieser Schritt ist optional, wenn `igc_extractor.py` die Flugliste intern selbst baut. Er wird empfohlen, um die Rohdaten zu überprüfen.
+Dieser Schritt ist Voraussetzung für `download_igc.py`. Er schreibt die Felder
+`IDFlight`, `FlightDate`, `TakeoffLocation`, `Glider`, `BestTaskDistance`,
+`FlightDuration`, `IgcUrl` und `ExtractedAt`.
 
 ---
 
-## 4. IGC-Dateien herunterladen
+## 3. IGC-Dateien herunterladen
 
-### 4.1 Erstladen
+### 3.1 Erstladen
 
 ```bash
 /home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
-  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/igc_extractor.py \
-  --flights 200
+  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/download_igc.py
 ```
 
-- Lädt maximal 200 Flüge herunter.
+- Liest `data/processed/flights.jsonl`.
+- Meldet sich mit demselben Session-/CSRF-Login wie `list_flights.py` an.
+- Lädt jede `.igc`-Datei seriell über `/flight/{IDFlight}/igc` herunter.
 - Speichert `.igc`-Dateien in `data/igc/`.
-- Schreibt Status in `data/igc_extractor.db`.
-- Protokolliert den Lauf nach `data/logs/`.
+- Protokolliert den Lauf nach `data/logs/download_igc_<run_id>.log`.
+- Schreibt ein Summary nach `data/logs/download_igc_summary_<run_id>.json`.
 
-### 4.2 Lauf fortsetzen (Resume)
+### 3.2 Lauf fortsetzen / einschränken
+
+Bereits vorhandene Dateien werden standardmäßig übersprungen:
 
 ```bash
 /home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
-  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/igc_extractor.py \
-  --flights 200 \
-  --resume
+  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/download_igc.py
 ```
 
-Bereits vorhandene Flüge werden übersprungen; fehlgeschlagene werden erneut versucht.
+Mit `--force` werden alle Dateien neu heruntergeladen:
+
+```bash
+/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
+  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/download_igc.py \
+  --force
+```
+
+Rate-Limiting und Retries können angepasst werden:
+
+```bash
+/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
+  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/download_igc.py \
+  --rate-limit 2.0 \
+  --max-retries 5
+```
 
 ---
 
-## 5. Import und Validierung
+## 4. Import und Validierung
 
 Nach dem Download in die SQLite-Datenbank importieren:
 
@@ -124,45 +124,43 @@ Ausgaben:
 
 ---
 
-## 6. Fehlerbehebung
+## 5. Fehlerbehebung
 
 | Symptom | Mögliche Ursache | Lösung |
 |---------|------------------|--------|
 | `Login failed` | Falscher Benutzername/Passwort; Account erfordert DHV-Portal-Flow | Credentials prüfen; ggf. im Browser einmalig anmelden und `PHPSESSID` wiederverwenden |
-| `403 Forbidden` | CSRF-Token fehlt oder ungültig | Token-Regex in `scripts/list_flights.py` prüfen |
+| `403 Forbidden` | CSRF-Token fehlt oder ungültig | Token-Regex in `scripts/dhv_xc_client.py` prüfen |
 | Leere Flugliste | Falsche Pilot-ID; Filter nicht gesetzt | `--pilot-id` oder `DHV_XC_PILOT_ID` prüfen; Filter `mine=1`/`incpriv=1` prüfen |
 | Downloads abbrechen | Netzwerk, Rate-Limit, Server-Fehler | Mit `--resume` erneut starten; Logs prüfen |
 | `invalid` IGC-Dateien | Datei unvollständig oder Logger ohne G-Record | Validierungskriterien in `docs/notes/pipeline-notes.md` prüfen |
 
 ---
 
-## 7. Monitoring eines längeren Laufs
+## 6. Monitoring eines längeren Laufs
 
 Bei vielen hundert Flügen empfiehlt es sich, den Prozess im Hintergrund zu starten:
 
 ```bash
 nohup /home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
-  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/igc_extractor.py \
-  --flights 500 \
-  --resume \
+  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/download_igc.py \
   > /home/florian/git.vollol.com/fknab/igc-extractor/data/logs/igc_download_$(date -u +%Y%m%dT%H%M%SZ).log 2>&1 &
 ```
 
 Log folgen:
 
 ```bash
-tail -f /home/florian/git.vollol.com/fknab/igc-extractor/data/logs/igc_download_*.log
+tail -f /home/florian/git.vollol.com/fknab/igc-extractor/data/logs/download_igc_*.log
 ```
 
 Stoppen:
 
 ```bash
-pkill -f igc_extractor.py
+pkill -f download_igc.py
 ```
 
 ---
 
-## 8. Checkliste nach dem Lauf
+## 7. Checkliste nach dem Lauf
 
 - [ ] `data/igc/` enthält die erwartete Anzahl `.igc`-Dateien.
 - [ ] `data/processed/flights.jsonl` ist aktuell.
