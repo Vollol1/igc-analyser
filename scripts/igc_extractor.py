@@ -26,6 +26,7 @@ import logging
 import os
 import subprocess
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
@@ -96,6 +97,30 @@ def _parse_args(args: Optional[list[str]] = None) -> argparse.Namespace:
         type=int,
         default=int(os.environ["DHV_XC_PILOT_ID"]) if os.environ.get("DHV_XC_PILOT_ID") else None,
         help="Optional pilot ID (overrides DHV_XC_PILOT_ID).",
+    )
+    parser.add_argument(
+        "--rate-limit",
+        type=float,
+        default=1.0,
+        help="Seconds to wait between consecutive IGC downloads (default: 1.0).",
+    )
+    parser.add_argument(
+        "--max-retries",
+        type=int,
+        default=3,
+        help="Maximum download attempts per IGC file (default: 3).",
+    )
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=50,
+        help="Download flights in batches of N, re-authenticating between batches (default: 50).",
+    )
+    parser.add_argument(
+        "--batch-pause",
+        type=int,
+        default=10,
+        help="Seconds to pause between download batches (default: 10).",
     )
     return parser.parse_args(args)
 
@@ -228,19 +253,46 @@ def _run_download_igc(
     project_root: Path,
     logger: logging.Logger,
 ) -> int:
-    """Download IGC files for the subset of flights."""
+    """Download IGC files for the subset of flights in batches."""
     output_dir = project_root / parsed.output_dir
-    args = [
-        "--flights-jsonl", str(flights_jsonl),
-        "--output-dir", str(output_dir),
-        "--logs-dir", str(project_root / "data" / "logs"),
-        "--base-url", parsed.base_url,
-        "--username", parsed.username or "",
-        "--password", parsed.password or "",
-    ]
+    all_records = _read_jsonl(flights_jsonl)
+    total = len(all_records)
+    if total == 0:
+        return 0
+
+    batch_size = parsed.batch_size
+    max_rc = 0
+    for start in range(0, total, batch_size):
+        end = min(start + batch_size, total)
+        logger.info(
+            "Downloading batch %d-%d of %d (batch_size=%d)",
+            start + 1,
+            end,
+            total,
+            batch_size,
+        )
+        args = [
+            "--flights-jsonl", str(flights_jsonl),
+            "--output-dir", str(output_dir),
+            "--logs-dir", str(project_root / "data" / "logs"),
+            "--base-url", parsed.base_url,
+            "--username", parsed.username or "",
+            "--password", parsed.password or "",
+            "--rate-limit", str(parsed.rate_limit),
+            "--max-retries", str(parsed.max_retries),
+            "--offset", str(start),
+            "--limit", str(batch_size),
+        ]
+        rc = _run_subprocess("download_igc.py", args, project_root, logger)
+        if rc != 0:
+            logger.error("Download batch %d-%d finished with exit code %d", start + 1, end, rc)
+            max_rc = rc
+        if end < total and parsed.batch_pause > 0:
+            logger.info("Pausing %d s between download batches", parsed.batch_pause)
+            time.sleep(parsed.batch_pause)
     if parsed.resume:
-        logger.info("Resume requested: existing IGC files will be skipped")
-    return _run_subprocess("download_igc.py", args, project_root, logger)
+        logger.info("Resume requested: existing IGC files within each batch will be skipped")
+    return max_rc
 
 
 def _run_import_flights(
@@ -317,6 +369,8 @@ def main(args: Optional[list[str]] = None) -> int:
     logger.info("state_db:   %s", state_db)
     logger.info("resume:     %s", parsed.resume)
     logger.info("dry_run:    %s", parsed.dry_run)
+    logger.info("rate_limit: %.1f s", parsed.rate_limit)
+    logger.info("max_retries: %d", parsed.max_retries)
 
     print(f"igc-extractor configured:")
     print(f"  base_url:   {parsed.base_url}")
@@ -327,6 +381,8 @@ def main(args: Optional[list[str]] = None) -> int:
     print(f"  state_db:   {state_db}")
     print(f"  resume:     {parsed.resume}")
     print(f"  dry_run:    {parsed.dry_run}")
+    print(f"  rate_limit: {parsed.rate_limit} s")
+    print(f"  max_retries: {parsed.max_retries}")
 
     list_rc = _run_list_flights(parsed, project_root, logger)
     if list_rc != 0:

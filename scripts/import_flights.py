@@ -201,10 +201,16 @@ def validate_igc_file(igc_path: Path) -> tuple[str, Optional[str], Optional[str]
         return "invalid", "IGC file contains no non-empty lines", None
     if not lines[0].startswith("A"):
         return "invalid", "Missing A-Record (file does not start with manufacturer record)", None
-    if not lines[-1].startswith("G"):
-        return "invalid", "Missing G-Record at end of file", None
-    if not any(line.startswith("B") for line in lines):
+    b_indices = [i for i, line in enumerate(lines) if line.startswith("B")]
+    if not b_indices:
         return "invalid", "No B-Records (position fixes) found", None
+    g_indices = [i for i, line in enumerate(lines) if line.startswith("G")]
+    if not g_indices:
+        return "invalid", "Missing G-Record", None
+    # The G-Record must appear after the last B-Record (security record closes the fixes).
+    # Additional extension records (e.g. LX*) after the G-Record are allowed by many loggers.
+    if g_indices[-1] < b_indices[-1]:
+        return "invalid", "G-Record does not appear after the last B-Record", None
     md5, sha256 = compute_hashes(data)
     combined_hash = f"md5:{md5}|sha256:{sha256}"
     return "valid", None, combined_hash

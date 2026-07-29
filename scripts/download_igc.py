@@ -152,6 +152,18 @@ def _parse_args(args: Optional[list[str]] = None) -> argparse.Namespace:
         "--password",
         help="DHV-XC password (overrides DHV_XC_PASSWORD from environment).",
     )
+    parser.add_argument(
+        "--offset",
+        type=int,
+        default=0,
+        help="Skip the first N flights from the JSONL (default: 0).",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="Process at most N flights from the JSONL (default: all).",
+    )
     return parser.parse_args(args)
 
 
@@ -272,6 +284,13 @@ def main(args: Optional[list[str]] = None) -> int:
     except ValueError as exc:
         logger.error("Failed to read flights: %s", exc)
         return 1
+
+    if parsed.offset:
+        flights = flights[parsed.offset:]
+        logger.info("Skipped first %d flight(s) (--offset)", parsed.offset)
+    if parsed.limit is not None:
+        flights = flights[:parsed.limit]
+        logger.info("Limited to %d flight(s) (--limit)", parsed.limit)
 
     summary = Summary(
         run_id=run_id,

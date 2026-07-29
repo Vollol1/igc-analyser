@@ -28,14 +28,22 @@ Lebendiges Notizbuch für Erkenntnisse, Probleme und offene Fragen rund um den D
 |--------|-------------|
 | Login | Bisher kein hartes Rate-Limit beobachtet, aber Anmeldeversuche sollten nicht in schneller Schleife erfolgen. |
 | Flugliste | Pagination via `navpars={"start":0,"limit":50,...}`. Seiten sollten seriell abgerufen werden. |
-| IGC-Download | Pro Flug ein GET auf `/flight/{IDFlight}/igc`. Keine parallelen Downloads ohne explizite Freigabe implementiert. |
+| IGC-Download | Pro Flug ein GET auf `/flight/{IDFlight}/igc`. Bei schneller serieller Abfolge (z. B. 1 s Rate-Limit) hängen Downloads nach ~50–60 Flügen ohne erkennbaren HTTP-Fehler. Vermutung: Serverseitige Soft-Limit / Session-Ablauf bei langer Download-Phase. |
 | allgemein | 429/503-Responses noch nicht beobachtet. Bei Auftreten Retry mit exponentiellem Backoff ergänzen. |
 
 ### Empfohlene Höflichkeitsregeln
 
 1. Maximal eine Anfrage pro Sekunde bei der Flugliste.
 2. IGC-Downloads seriell oder mit sehr geringer Parallelität.
-3. Keine scraping-artigen Endlos-Loops ohne `--resume`/`--limit`.
+3. Downloads in Batches durchführen (z. B. 40 Flüge) und zwischen den Batches frisch anmelden sowie 15–30 s pausieren.
+4. Keine scraping-artigen Endlos-Loops ohne `--resume`/`--limit`.
+
+### Real beobachtete Download-Zeiten (29.07.2026)
+
+- ~288 eigene Flüge, davon 240 tatsächlich herunterzuladen.
+- Mit `--rate-limit 2.0` und `--batch-size 40 --batch-pause 30` ca. 10–12 Minuten Gesamtlaufzeit inklusive Pausen.
+- Durchschnittliche Download-Zeit pro Flug: 0,5–2 s; gelegentliche größere Dateien (Langstreckenflüge) bis ~5 s.
+- Keine HTTP-429/503-Fehler, aber einzelne Hänger bei Langzeit-Sessions ohne Batch-Pause.
 
 ---
 
@@ -79,4 +87,8 @@ Die Pipeline ist so konzipiert, dass unterbrochene Läufe fortgesetzt werden kö
 
 ## Changelog
 
+- **2026-07-29**: Echter End-to-End-Lauf mit 288 eigenen Flügen durchgeführt.
+  - Download-Strategie: `--rate-limit 2.0 --batch-size 40 --batch-pause 30`.
+  - Ergebnis: 288/288 IGC-Dateien heruntergeladen, 287/288 valid, 1 invalid (Flug 2234459 ohne G-Record).
+  - Validierung korrigiert: G-Record muss nach dem letzten B-Record liegen, nicht unbedingt als letzte Zeile der Datei (Naviter-Logger hängen `LX*` Endinfo-Datensätze nach dem G-Record an).
 - **2026-07-26**: Datei angelegt. Enthält Platzhalter für zukünftige Beobachtungen zu Login, Rate-Limiting, Resume und Validierung.
