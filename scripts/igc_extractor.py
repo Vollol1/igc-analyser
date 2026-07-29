@@ -7,35 +7,42 @@ The tool is intentionally lightweight: plain Python + requests/BeautifulSoup,
 local SQLite/JSONL storage, idempotent execution with resume support,
 and credentials sourced from environment variables / .env.
 
+This script orchestrates the full pipeline:
+
+    1. list_flights.py  - fetch / update ``data/processed/flights.jsonl``.
+    2. download_igc.py  - download IGC files for the requested subset.
+    3. import_flights.py - import metadata + IGC files into SQLite and validate.
+
 See docs/decisions/ADR-001-architecture-techstack.md for architectural
 principles and /home/florian/github.com/Vollol1/gag-atlas/docs/decisions/ADR-007-secrets-management.md
 for secrets handling.
 """
 
+from __future__ import annotations
+
 import argparse
+import json
+import logging
 import os
+import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 
 def _load_dotenv_if_available() -> None:
     """Load .env into os.environ when python-dotenv is installed."""
     try:
         from dotenv import load_dotenv  # type: ignore
-
         dotenv_path = Path(__file__).resolve().parent.parent / ".env"
         load_dotenv(dotenv_path, override=False)
     except ImportError:
         pass
 
 
-def _require_env(name: str) -> str:
-    """Return an environment variable or raise a clear error."""
-    value = os.environ.get(name)
-    if not value:
-        raise RuntimeError(f"Missing required environment variable: {name}")
-    return value
+def _project_root() -> Path:
+    return Path(__file__).resolve().parent.parent
 
 
 def _parse_args(args: Optional[list[str]] = None) -> argparse.Namespace:
@@ -106,6 +113,178 @@ def _validate_credentials(parsed: argparse.Namespace) -> tuple[str, str]:
     return username, password
 
 
+def _sanitize_filename(value: str) -> str:
+    """Mirror the safe-filename logic used by download_igc.py."""
+    unsafe = set('\\\\/:*?"<>|')
+    return "".join(c if c not in unsafe and c.isprintable() else "_" for c in value)
+
+
+def _igc_filename(record: dict[str, Any]) -> str:
+    """Build the IGC filename exactly as download_igc.py does."""
+    flight_id = record["IDFlight"]
+    parts = [str(flight_id)]
+    date = record.get("FlightDate")
+    if date:
+        parts.append(_sanitize_filename(str(date)))
+    takeoff = record.get("TakeoffLocation")
+    if takeoff:
+        parts.append(_sanitize_filename(str(takeoff)))
+    if len(parts) > 1:
+        return "_".join(parts) + ".igc"
+    return f"{flight_id}.igc"
+
+
+def _setup_logging(run_id: str, logs_dir: Path) -> Path:
+    logs_dir.mkdir(parents=True, exist_ok=True)
+    log_path = logs_dir / f"igc_extractor_run_{run_id}.log"
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        handlers=[
+            logging.FileHandler(log_path, mode="w", encoding="utf-8"),
+            logging.StreamHandler(sys.stdout),
+        ],
+    )
+    return log_path
+
+
+def _read_jsonl(path: Path) -> list[dict[str, Any]]:
+    if not path.exists():
+        return []
+    records: list[dict[str, Any]] = []
+    with path.open("r", encoding="utf-8") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                records.append(json.loads(line))
+            except json.JSONDecodeError as exc:
+                logging.warning("Skipping malformed JSONL line: %s", exc)
+    return records
+
+
+def _write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8", newline="") as fh:
+        for record in records:
+            fh.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+
+def _prepare_download_subset(
+    all_flights_path: Path,
+    limit: int,
+    subset_path: Path,
+) -> int:
+    """
+    Read the full flight list, keep the ``limit`` newest flights, enrich each
+    record with ``IgcFilename`` (so import_flights.py can locate the file),
+    and write a subset JSONL for the download/import steps.
+    """
+    all_records = _read_jsonl(all_flights_path)
+    if not all_records:
+        return 0
+    subset = all_records[:limit]
+    for record in subset:
+        record["IgcFilename"] = _igc_filename(record)
+    _write_jsonl(subset_path, subset)
+    return len(subset)
+
+
+def _run_subprocess(
+    script_name: str,
+    args: list[str],
+    project_root: Path,
+    logger: logging.Logger,
+) -> int:
+    """Run one of the pipeline scripts via the same Python interpreter."""
+    script_path = project_root / "scripts" / script_name
+    cmd = [sys.executable, str(script_path)] + args
+    logger.info("Running: %s", " ".join(cmd))
+    result = subprocess.run(cmd, cwd=str(project_root), check=False)
+    logger.info("%s finished with exit code %d", script_name, result.returncode)
+    return result.returncode
+
+
+def _run_list_flights(
+    parsed: argparse.Namespace,
+    project_root: Path,
+    logger: logging.Logger,
+) -> int:
+    """Update data/processed/flights.jsonl with all own flights."""
+    flights_jsonl = project_root / "data" / "processed" / "flights.jsonl"
+    args = [
+        "--base-url", parsed.base_url,
+        "--username", parsed.username or "",
+        "--password", parsed.password or "",
+        "--output", str(flights_jsonl),
+    ]
+    return _run_subprocess("list_flights.py", args, project_root, logger)
+
+
+def _run_download_igc(
+    parsed: argparse.Namespace,
+    flights_jsonl: Path,
+    project_root: Path,
+    logger: logging.Logger,
+) -> int:
+    """Download IGC files for the subset of flights."""
+    output_dir = project_root / parsed.output_dir
+    args = [
+        "--flights-jsonl", str(flights_jsonl),
+        "--output-dir", str(output_dir),
+        "--logs-dir", str(project_root / "data" / "logs"),
+        "--base-url", parsed.base_url,
+        "--username", parsed.username or "",
+        "--password", parsed.password or "",
+    ]
+    if parsed.resume:
+        logger.info("Resume requested: existing IGC files will be skipped")
+    return _run_subprocess("download_igc.py", args, project_root, logger)
+
+
+def _run_import_flights(
+    parsed: argparse.Namespace,
+    flights_jsonl: Path,
+    project_root: Path,
+    logger: logging.Logger,
+    run_id: str,
+) -> int:
+    """Import metadata and IGC files into SQLite."""
+    args = [
+        "--flights-jsonl", str(flights_jsonl),
+        "--igc-dir", str(project_root / parsed.output_dir),
+        "--db", str(project_root / parsed.state_db),
+        "--schema", str(project_root / "data" / "schema.sql"),
+        "--export-dir", str(project_root / "data" / "export"),
+        "--log-dir", str(project_root / "data" / "logs"),
+        "--run-id", run_id,
+    ]
+    return _run_subprocess("import_flights.py", args, project_root, logger)
+
+
+def _print_dry_run_preview(
+    all_records: list[dict[str, Any]],
+    limit: int,
+    output_dir: Path,
+) -> None:
+    """Show what a real run would do without touching downloads/imports."""
+    total = len(all_records)
+    subset = all_records[:limit]
+    print(f"\nDry-run preview ({len(subset)} of {total} flights would be processed):\n")
+    for idx, record in enumerate(subset, start=1):
+        print(
+            f"  {idx}. Flight {record.get('IDFlight')} "
+            f"- {record.get('FlightDate')} - {record.get('TakeoffLocation')} "
+            f"- {_igc_filename(record)}"
+        )
+    print(
+        f"\nWould download up to {len(subset)} IGC file(s) to {output_dir} "
+        f"and import them into the SQLite database."
+    )
+    print("No files were downloaded or written to the database in this run.")
+
+
 def main(args: Optional[list[str]] = None) -> int:
     _load_dotenv_if_available()
     parsed = _parse_args(args)
@@ -116,13 +295,28 @@ def main(args: Optional[list[str]] = None) -> int:
         print(f"Error: {exc}", file=sys.stderr)
         return 1
 
-    # Resolve paths relative to the project root (where this script lives in scripts/)
-    project_root = Path(__file__).resolve().parent.parent
+    project_root = _project_root()
     output_dir = project_root / parsed.output_dir
     state_db = project_root / parsed.state_db
 
     output_dir.mkdir(parents=True, exist_ok=True)
     state_db.parent.mkdir(parents=True, exist_ok=True)
+
+    run_id = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    logs_dir = project_root / "data" / "logs"
+    log_path = _setup_logging(run_id, logs_dir)
+    logger = logging.getLogger(__name__)
+
+    logger.info("Starting igc-extractor run %s", run_id)
+    logger.info("Log file: %s", log_path)
+    logger.info("base_url:   %s", parsed.base_url)
+    logger.info("username:   %s", username)
+    logger.info("pilot_id:   %s", parsed.pilot_id)
+    logger.info("flights:    %d", parsed.flights)
+    logger.info("output_dir: %s", output_dir)
+    logger.info("state_db:   %s", state_db)
+    logger.info("resume:     %s", parsed.resume)
+    logger.info("dry_run:    %s", parsed.dry_run)
 
     print(f"igc-extractor configured:")
     print(f"  base_url:   {parsed.base_url}")
@@ -133,8 +327,48 @@ def main(args: Optional[list[str]] = None) -> int:
     print(f"  state_db:   {state_db}")
     print(f"  resume:     {parsed.resume}")
     print(f"  dry_run:    {parsed.dry_run}")
-    print("\nActual download implementation is pending. Use --help for options.")
-    return 0
+
+    list_rc = _run_list_flights(parsed, project_root, logger)
+    if list_rc != 0:
+        logger.error("Flight list step failed with exit code %d", list_rc)
+        return list_rc
+
+    all_flights_path = project_root / "data" / "processed" / "flights.jsonl"
+    all_records = _read_jsonl(all_flights_path)
+    logger.info("Flight list contains %d record(s)", len(all_records))
+
+    if parsed.dry_run:
+        _print_dry_run_preview(all_records, parsed.flights, output_dir)
+        logger.info("Dry run finished, no downloads or imports performed")
+        return 0
+
+    subset_path = project_root / "data" / "processed" / "flights_to_download.jsonl"
+    subset_count = _prepare_download_subset(all_flights_path, parsed.flights, subset_path)
+    logger.info(
+        "Prepared download subset with %d of %d flight(s) at %s",
+        subset_count,
+        len(all_records),
+        subset_path,
+    )
+
+    if subset_count == 0:
+        print("No flights found to download.")
+        return 0
+
+    download_rc = _run_download_igc(parsed, subset_path, project_root, logger)
+    if download_rc != 0:
+        logger.error("Download step finished with exit code %d", download_rc)
+
+    import_rc = _run_import_flights(parsed, subset_path, project_root, logger, run_id)
+    if import_rc != 0:
+        logger.error("Import step finished with exit code %d", import_rc)
+
+    final_rc = download_rc if download_rc != 0 else import_rc
+    if final_rc == 0:
+        logger.info("igc-extractor run %s completed successfully", run_id)
+    else:
+        logger.warning("igc-extractor run %s finished with exit code %d", run_id, final_rc)
+    return final_rc
 
 
 if __name__ == "__main__":
