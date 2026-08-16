@@ -17,6 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Consolidated and cleaned up project documentation (`README.md`, `docs/TODO.md`, agent notes, pipeline notes).
 - Documented known inconsistencies such as the two SQLite database names and the missing `tests/` folder.
+- Corrected misleading meta distance fields in `export_meta.json`:
+  - Renamed `total_best_task_distance_km` to `sum_best_task_distance_km` to clarify it is the sum of all Best-Task-Distances.
+  - Added `best_single_flight_distance_km` (max Best-Task-Distance of a single flight).
+  - Added `best_single_flight` with `IDFlight`, `FlightDate` and `TakeoffLocation` of the best flight.
+  - Updated README.txt and `docs/runbooks/export-igc.md` accordingly.
 
 ## [0.1.0] - 2026-07-29
 

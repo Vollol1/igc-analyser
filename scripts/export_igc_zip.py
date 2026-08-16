@@ -74,6 +74,19 @@ NUTZUNG
 
 Dieses Archiv dient beispielsweise als Nachweis für Höhenflug-
 Meldeverfahren oder zur persönlichen Archivierung.
+
+HINWEIS ZU DEN DISTANZANGABEN
+-------------------------------
+
+Die Distanzwerte stammen von dhv-xc.de und beziehen sich auf die
+jeweils erkannte Best-Task-Distanz eines Fluges.
+
+- sum_best_task_distance_km:    Summe der Best-Task-Distanzen aller
+                                Flüge in diesem Archiv.
+- best_single_flight_distance_km:  Größte Best-Task-Distanz eines
+                                   einzelnen Fluges in diesem Archiv.
+- best_single_flight:           IDFlight, FlightDate und TakeoffLocation
+                                des besten einzelnen Fluges.
 """
 
 
@@ -270,11 +283,25 @@ def _compute_meta(flights: list[FlightRecord]) -> dict[str, Any]:
     distances = [f.best_task_distance for f in flights if f.best_task_distance is not None]
     takeoffs = {f.takeoff_location for f in flights if f.takeoff_location}
 
+    best_flight: Optional[FlightRecord] = None
+    if flights:
+        best_flight = max(
+            (f for f in flights if f.best_task_distance is not None),
+            key=lambda f: f.best_task_distance,
+            default=None,
+        )
+
     return {
         "total_flights": total_flights,
         "total_igc_files": total_flights,
         "total_flight_duration_minutes": sum(durations) if durations else 0,
-        "total_best_task_distance_km": round(sum(distances), 3) if distances else 0.0,
+        "sum_best_task_distance_km": round(sum(distances), 3) if distances else 0.0,
+        "best_single_flight_distance_km": round(best_flight.best_task_distance, 3) if best_flight else 0.0,
+        "best_single_flight": {
+            "IDFlight": best_flight.id_flight,
+            "FlightDate": best_flight.flight_date,
+            "TakeoffLocation": best_flight.takeoff_location,
+        } if best_flight else None,
         "period": {
             "earliest_flight_date": dates[0] if dates else None,
             "latest_flight_date": dates[-1] if dates else None,

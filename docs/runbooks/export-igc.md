@@ -84,11 +84,15 @@ Enthaltene Felder:
 - `total_flights` – Anzahl Flüge im Archiv.
 - `total_igc_files` – Gesamtanzahl IGC-Dateien.
 - `total_flight_duration_minutes` – Summe der Flugdauern.
-- `total_best_task_distance_km` – Summe der Best-Task-Distanzen.
+- `sum_best_task_distance_km` – Summe der Best-Task-Distanzen aller Flüge.
+- `best_single_flight_distance_km` – Größte Best-Task-Distanz eines einzelnen Fluges.
+- `best_single_flight` – IDFlight, FlightDate und TakeoffLocation des besten einzelnen Fluges.
 - `period.earliest_flight_date` / `period.latest_flight_date` – Zeitspanne.
 - `unique_takeoff_locations` – Anzahl unterschiedlicher Startplätze.
 - `generated_at` – Erstellungsdatum.
 - `validation_note` – Hinweis auf strukturelle Validierung.
+
+Die Distanzwerte stammen von dhv-xc.de und beziehen sich auf die Best-Task-Distanz eines Fluges.
 
 ### Flugtabelle ansehen
 
