@@ -148,6 +148,20 @@ pytest tests/
 
 ---
 
+## 12. Relative Links in Gitea-Releases
+
+**l) Für Release-Beschreibungen in Gitea werden ausschließlich relative Links verwendet, die auf den jeweiligen Tag verweisen.**
+
+- Verboten: absolute URLs wie `http://localhost:30030/...`, Links auf `main` oder `blob/...`-Pfade.
+- Korrektes Muster für ein Repository `/fknab/igc-extractor` und Tag `v0.2.0`:
+  ```markdown
+  [CHANGELOG.md](../igc-extractor/src/tag/v0.2.0/CHANGELOG.md)
+  ```
+- Begründung: Von der Release-URL `/fknab/igc-extractor/releases/tag/v0.2.0` führt `../igc-extractor/` zurück auf die Repository-Ebene; `src/tag/v0.2.0/CHANGELOG.md` zeigt dann auf die Datei im Tag-Source.
+- Dieses Muster gilt für alle zukünftigen Releases und Dokumenten-Verweise innerhalb von Gitea-Release-Notizen.
+
+---
+
 ## Quick checklist (copy before committing)
 
 ```markdown
@@ -159,6 +173,7 @@ pytest tests/
 - [ ] No long-running tasks are blocking the agent
 - [ ] Auto-Review enabled + commit mode (wenn neue Dateien erstellt)
 - [ ] Wiederkehrende Patterns → neue Regel in dieser Datei
+- [ ] Relative Gitea-Release-Links auf `src/tag/<version>/...` prüfen
 - [ ] Bei Merge-Problemen: Worktree-Ergebnisse vom Kanban-Sidebar-Agent ins Haupt-Repo übernehmen lassen
 ```
 
