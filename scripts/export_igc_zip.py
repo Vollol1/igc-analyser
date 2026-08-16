@@ -9,6 +9,7 @@ ZIP archive containing:
 - ``README.txt``        : human readable cover sheet with pilot/sender name.
 - ``export_meta.json``  : overview statistics and export metadata.
 - ``flights.csv``       : detailed flight table.
+- ``flight_summary.pdf``: structured PDF summary (cover sheet + flight table).
 - ``<IDFlight>_<FlightDate>_<TakeoffLocation>.igc`` : renamed IGC files.
 
 The validation status included in the CSV is structural only (A/B/G records,
@@ -33,6 +34,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import cm
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+
 
 DEFAULT_FLIGHTS_JSONL = Path("data/processed/flights.jsonl")
 DEFAULT_IGC_DIR = Path("data/igc")
@@ -44,6 +51,7 @@ DEFAULT_PILOT_NAME = "Florian Knab"
 META_FILENAME = "export_meta.json"
 CSV_FILENAME = "flights.csv"
 README_FILENAME = "README.txt"
+PDF_FILENAME = "flight_summary.pdf"
 
 
 class _FilenameSanitizer:
@@ -331,6 +339,174 @@ def _build_readme(meta: dict[str, Any], pilot_name: str) -> bytes:
     return "\n".join(lines).encode("utf-8")
 
 
+
+
+def _format_value(value: Any) -> str:
+    """Convert a value to a printable string, treating None as ''."""
+    if value is None:
+        return ""
+    if isinstance(value, (int, float)):
+        return str(value)
+    return str(value)
+
+
+def _build_pdf(meta: dict[str, Any], flights: list[FlightRecord], pilot_name: str) -> bytes:
+    """Return a structured PDF summary (cover sheet + flight table) as bytes."""
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=1.5 * cm,
+        leftMargin=1.5 * cm,
+        topMargin=1.5 * cm,
+        bottomMargin=1.5 * cm,
+    )
+    styles = getSampleStyleSheet()
+    story: list[Any] = []
+
+    # Title / cover sheet
+    story.append(Paragraph("<b>IGC-Flugarchiv - Zusammenfassung</b>", styles["Title"]))
+    story.append(Spacer(1, 0.5 * cm))
+
+    period_label = meta.get("period", {}).get("period_label") or "unbekannter Zeitraum"
+    total_flights = meta.get("total_flights", 0)
+    duration = meta.get("total_flight_duration_minutes", 0)
+    sum_distances = meta.get("sum_xc_distance_overall_flights", 0.0)
+    best_single = meta.get("best_single_flight_distance_km")
+    best_flight = meta.get("best_single_flight")
+    takeoffs = meta.get("unique_takeoff_locations", 0)
+    generated = meta.get("generated_at", "unbekannt")
+
+    cover_data = [
+        ["Pilot / Absender", _format_value(pilot_name)],
+        ["Zeitraum", _format_value(period_label)],
+        ["Anzahl Fl\u00fcge", _format_value(total_flights)],
+        ["Anzahl IGC-Dateien", _format_value(meta.get("total_igc_files", total_flights))],
+        ["Gesamtflugzeit (Min)", _format_value(duration)],
+        ["Summe XC-Distanz (km)", _format_value(sum_distances)],
+        [
+            "Bester einzelner Flug",
+            (
+                f"{_format_value(best_single)} km "
+                f"(ID {_format_value(best_flight.get('IDFlight'))}, "
+                f"{_format_value(best_flight.get('FlightDate'))}, "
+                f"{_format_value(best_flight.get('TakeoffLocation'))})"
+            ) if best_single is not None and best_flight else "",
+        ],
+        ["Unterschiedliche Startorte", _format_value(takeoffs)],
+        ["Erstellungsdatum", _format_value(generated)],
+    ]
+
+    cover_table = Table(cover_data, colWidths=[doc.width / 2.5, doc.width - doc.width / 2.5])
+    cover_table.setStyle(
+        TableStyle([
+            ("BACKGROUND", (0, 0), (0, -1), colors.lightgrey),
+            ("TEXTCOLOR", (0, 0), (-1, -1), colors.black),
+            ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
+            ("FONTNAME", (1, 0), (1, -1), "Helvetica"),
+            ("FONTSIZE", (0, 0), (-1, -1), 10),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+            ("LEFTPADDING", (0, 0), (-1, -1), 6),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+            ("TOPPADDING", (0, 0), (-1, -1), 6),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+        ])
+    )
+    story.append(cover_table)
+    story.append(Spacer(1, 0.8 * cm))
+
+    validation_note = _format_value(meta.get("validation_note"))
+    if validation_note:
+        story.append(
+            Paragraph(
+                f"<b>Hinweis zur Validierung:</b> {validation_note}",
+                styles["Normal"],
+            )
+        )
+    story.append(Spacer(1, 0.8 * cm))
+
+    # Flight table header
+    story.append(Paragraph("<b>Flugtabelle</b>", styles["Heading2"]))
+    story.append(Spacer(1, 0.3 * cm))
+    table_headers = [
+        "IDFlight",
+        "FlightDate",
+        "Takeoff",
+        "Landing",
+        "Glider",
+        "Duration\n(min)",
+        "BestTask\n(km)",
+        "IGC-Datei",
+        "ValidStatus",
+    ]
+    table_data = [table_headers]
+
+    for flight in flights:
+        row = [
+            _format_value(flight.id_flight),
+            _format_value(flight.flight_date),
+            _format_value(flight.takeoff_location),
+            _format_value(flight.landing_location),
+            _format_value(flight.glider),
+            _format_value(flight.flight_duration),
+            _format_value(flight.best_task_distance),
+            _format_value(flight.archive_filename),
+            _format_value(flight.valid or "unknown"),
+        ]
+        table_data.append(row)
+
+    available_width = doc.width
+    col_widths = [
+        1.1 * cm,   # IDFlight
+        1.8 * cm,   # FlightDate
+        2.2 * cm,   # Takeoff
+        2.2 * cm,   # Landing
+        2.4 * cm,   # Glider
+        1.4 * cm,   # Duration
+        1.4 * cm,   # BestTask
+        3.0 * cm,   # IGC file
+        1.4 * cm,   # ValidStatus
+    ]
+    total_requested = sum(col_widths)
+    if total_requested > available_width:
+        scale = available_width / total_requested
+        col_widths = [w * scale for w in col_widths]
+
+    flight_table = Table(table_data, colWidths=col_widths, repeatRows=1)
+    flight_table.setStyle(
+        TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.darkblue),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+            ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, 0), 9),
+            ("FONTSIZE", (0, 1), (-1, -1), 8),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+            ("LEFTPADDING", (0, 0), (-1, -1), 4),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+            ("TOPPADDING", (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ])
+    )
+    for row_idx in range(1, len(table_data)):
+        if row_idx % 2 == 0:
+            flight_table.setStyle(
+                TableStyle([
+                    ("BACKGROUND", (0, row_idx), (-1, row_idx), colors.lightgrey),
+                ])
+            )
+
+    story.append(flight_table)
+
+    doc.build(story)
+    pdf_bytes = buffer.getvalue()
+    buffer.close()
+    return pdf_bytes
+
+
 def _write_meta_csv_and_readme(
     archive: zipfile.ZipFile | tarfile.TarFile,
     meta: dict[str, Any],
@@ -361,10 +537,13 @@ def _write_meta_csv_and_readme(
         writer.writerow(flight.csv_row())
     csv_bytes = csv_buffer.getvalue().encode("utf-8")
 
+    pdf_bytes = _build_pdf(meta, flights, pilot_name)
+
     if isinstance(archive, zipfile.ZipFile):
         archive.writestr(README_FILENAME, readme_bytes)
         archive.writestr(META_FILENAME, meta_bytes)
         archive.writestr(CSV_FILENAME, csv_bytes)
+        archive.writestr(PDF_FILENAME, pdf_bytes)
         return
 
     # tar.gz path
@@ -383,6 +562,11 @@ def _write_meta_csv_and_readme(
     csv_info.size = len(csv_bytes)
     csv_info.mtime = now
     archive.addfile(csv_info, io.BytesIO(csv_bytes))
+
+    pdf_info = tarfile.TarInfo(name=PDF_FILENAME)
+    pdf_info.size = len(pdf_bytes)
+    pdf_info.mtime = now
+    archive.addfile(pdf_info, io.BytesIO(pdf_bytes))
 
 
 def _write_zip_archive(

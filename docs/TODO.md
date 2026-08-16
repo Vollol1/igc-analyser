@@ -74,8 +74,10 @@ _(keine)_
 
 - [ ] Datenqualität weiterhin gelegentlich prüfen (z. B. nach jedem größeren Download).
 - [x] IGC-Export für Höhenflug-Nachweis (v0.3.0, siehe ROADMAP)
-  - `scripts/export_igc_zip.py` erstellt ein ZIP/tar.gz-Archiv mit `README.txt`, `export_meta.json`, `flights.csv` und den IGC-Dateien.
+  - `scripts/export_igc_zip.py` erstellt ein ZIP/tar.gz-Archiv mit `README.txt`, `export_meta.json`, `flights.csv`, `flight_summary.pdf` und den IGC-Dateien.
   - `README.txt` enthält den Piloten-/Absendernamen (Parameter `--pilot-name` / `--sender`).
+  - `flight_summary.pdf` enthält ein strukturiertes Deckblatt (Pilot, Zeitraum, Anzahl Flüge, IGC-Dateien, Gesamtflugzeit, XC-Distanz, bester Flug, Startorte, Erstellungsdatum, Hinweis zur Validierung) sowie eine tabellarische Übersicht aller Flüge.
+  - PDF-Generierung über `reportlab>=4.0.0` (reiner Python, keine externen System-Dependencies); siehe [ADR-002](../decisions/ADR-002-pdf-reporting-reportlab.md).
   - Generierte Archive stehen in `.gitignore`.
   - Siehe auch [`docs/ROADMAP.md`](./ROADMAP.md) und [`docs/runbooks/export-igc.md`](../runbooks/export-igc.md).
 - [ ] Validierungs- und Ausreisser-Checks für Flugdaten

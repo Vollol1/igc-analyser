@@ -45,7 +45,7 @@ Eingaben:
 
 Ausgaben:
 
-- `data/export/igc_export_<run_id>.zip` – Archiv mit `README.txt`, `export_meta.json`, `flights.csv` und allen IGC-Dateien.
+- `data/export/igc_export_<run_id>.zip` – Archiv mit `README.txt`, `export_meta.json`, `flights.csv`, `flight_summary.pdf` und allen IGC-Dateien.
 - Log unter `data/logs/export_igc_zip_<run_id>.log`.
 - Summary unter `data/logs/export_igc_zip_summary_<run_id>.json`.
 
@@ -57,11 +57,12 @@ Ausgaben:
 unzip -l data/export/igc_export_<run_id>.zip
 ```
 
-Die ersten drei Einträge sollten sein:
+Die ersten vier Einträge sollten sein:
 
 1. `README.txt` – Deckblatt mit Piloten-/Absendername, Erstellungsdatum, Anzahl Flüge, Zeitraum und Hinweis zur strukturellen Validierung.
 2. `export_meta.json` – Übersichtsstatistik.
 3. `flights.csv` – Detaillierte Flugtabelle.
+4. `flight_summary.pdf` – Strukturierte PDF-Zusammenfassung.
 
 Danach folgen die IGC-Dateien in der Form:
 
@@ -166,6 +167,7 @@ Standardmäßig wird `README.txt` mit dem Namen `Florian Knab` erzeugt.
 - [ ] `export_meta.json` enthält die erwarteten Werte.
 - [ ] `flights.csv` enthält alle erwarteten Spalten und Zeilen.
 - [ ] `README.txt` ist vorhanden und enthält den korrekten Piloten-/Absendernamen.
+- [ ] `flight_summary.pdf` ist vorhanden und enthält Deckblatt sowie Flugtabelle.
 - [ ] Anzahl IGC-Dateien im Archiv stimmt mit `total_igc_files` überein.
 - [ ] Keine `.env` oder Log-Dateien wurden committet.
 - [ ] Generierte Archive (`data/export/*.zip`, `data/export/*.tar.gz`) wurden nicht committet.
@@ -178,3 +180,4 @@ Standardmäßig wird `README.txt` mit dem Namen `Florian Knab` erzeugt.
 - [Download-Runbook](./download-igc.md)
 - [Pipeline-Notizen](../notes/pipeline-notes.md)
 - [ADR-001: Architecture & Tech Stack](../decisions/ADR-001-architecture-techstack.md)
+- [ADR-002: PDF-Reporting mit reportlab](../decisions/ADR-002-pdf-reporting-reportlab.md)

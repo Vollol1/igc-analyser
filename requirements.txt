@@ -10,3 +10,6 @@ python-dotenv>=1.0.0
 
 # Progress bars (optional, for nicer CLI output on long-running batches)
 tqdm>=4.66.0
+
+# PDF generation for structured export summaries
+reportlab>=4.0.0
