@@ -35,10 +35,10 @@ from pathlib import Path
 from typing import Any, Optional
 
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4
+from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import cm
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
 
 
 DEFAULT_FLIGHTS_JSONL = Path("data/processed/flights.jsonl")
@@ -350,23 +350,43 @@ def _format_value(value: Any) -> str:
     return str(value)
 
 
+def _format_datetime_readable(iso_string: str) -> str:
+    """Convert ISO datetime string to a human-readable format.
+    
+    Example: '2026-08-16T12:48:00.123456+00:00' -> '2026-08-16 12:48 UTC'
+    """
+    if not iso_string:
+        return "unbekannt"
+    try:
+        # Parse ISO format datetime
+        dt = datetime.fromisoformat(iso_string.replace("Z", "+00:00"))
+        # Format as readable string
+        return dt.strftime("%Y-%m-%d %H:%M UTC")
+    except (ValueError, AttributeError):
+        # Fallback: return original string if parsing fails
+        return iso_string
+
+
 def _build_pdf(meta: dict[str, Any], flights: list[FlightRecord], pilot_name: str) -> bytes:
-    """Return a structured PDF summary (cover sheet + flight table) as bytes."""
+    """Return a structured PDF summary (cover sheet + flight table) as bytes.
+    
+    The PDF uses A4 landscape for better readability of the flight table.
+    """
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
         buffer,
-        pagesize=A4,
-        rightMargin=1.5 * cm,
-        leftMargin=1.5 * cm,
-        topMargin=1.5 * cm,
-        bottomMargin=1.5 * cm,
+        pagesize=landscape(A4),
+        rightMargin=1.0 * cm,
+        leftMargin=1.0 * cm,
+        topMargin=1.0 * cm,
+        bottomMargin=1.0 * cm,
     )
     styles = getSampleStyleSheet()
     story: list[Any] = []
 
-    # Title / cover sheet
-    story.append(Paragraph("<b>IGC-Flugarchiv - Zusammenfassung</b>", styles["Title"]))
-    story.append(Spacer(1, 0.5 * cm))
+    # Title / cover sheet - changed to "Flugbuch"
+    story.append(Paragraph("<b>Flugbuch</b>", styles["Title"]))
+    story.append(Spacer(1, 0.3 * cm))
 
     period_label = meta.get("period", {}).get("period_label") or "unbekannter Zeitraum"
     total_flights = meta.get("total_flights", 0)
@@ -376,6 +396,14 @@ def _build_pdf(meta: dict[str, Any], flights: list[FlightRecord], pilot_name: st
     best_flight = meta.get("best_single_flight")
     takeoffs = meta.get("unique_takeoff_locations", 0)
     generated = meta.get("generated_at", "unbekannt")
+    
+    # Format the generated date in a readable format
+    generated_readable = _format_datetime_readable(generated)
+
+    # Subtitle with pilot and period for context
+    subtitle_text = f"<i>{pilot_name}</i> &nbsp;|&nbsp; {period_label}"
+    story.append(Paragraph(subtitle_text, styles["Normal"]))
+    story.append(Spacer(1, 0.5 * cm))
 
     cover_data = [
         ["Pilot / Absender", _format_value(pilot_name)],
@@ -394,7 +422,7 @@ def _build_pdf(meta: dict[str, Any], flights: list[FlightRecord], pilot_name: st
             ) if best_single is not None and best_flight else "",
         ],
         ["Unterschiedliche Startorte", _format_value(takeoffs)],
-        ["Erstellungsdatum", _format_value(generated)],
+        ["Erstellungsdatum", _format_value(generated_readable)],
     ]
 
     cover_table = Table(cover_data, colWidths=[doc.width / 2.5, doc.width - doc.width / 2.5])
@@ -427,19 +455,21 @@ def _build_pdf(meta: dict[str, Any], flights: list[FlightRecord], pilot_name: st
         )
     story.append(Spacer(1, 0.8 * cm))
 
-    # Flight table header
-    story.append(Paragraph("<b>Flugtabelle</b>", styles["Heading2"]))
+    # Flight table header - optimized for landscape A4
+    story.append(Paragraph("<b>Flugliste</b>", styles["Heading2"]))
     story.append(Spacer(1, 0.3 * cm))
+    
+    # Shorter column headers for better fit
     table_headers = [
-        "IDFlight",
-        "FlightDate",
-        "Takeoff",
-        "Landing",
+        "ID",
+        "Datum",
+        "Start",
+        "Landung",
         "Glider",
-        "Duration\n(min)",
-        "BestTask\n(km)",
+        "Dauer\n(min)",
+        "Distanz\n(km)",
         "IGC-Datei",
-        "ValidStatus",
+        "Status",
     ]
     table_data = [table_headers]
 
@@ -457,45 +487,53 @@ def _build_pdf(meta: dict[str, Any], flights: list[FlightRecord], pilot_name: st
         ]
         table_data.append(row)
 
-    available_width = doc.width
+    # Optimized column widths for landscape A4 (available ~27.7 cm)
     col_widths = [
-        1.1 * cm,   # IDFlight
-        1.8 * cm,   # FlightDate
-        2.2 * cm,   # Takeoff
-        2.2 * cm,   # Landing
-        2.4 * cm,   # Glider
-        1.4 * cm,   # Duration
-        1.4 * cm,   # BestTask
-        3.0 * cm,   # IGC file
-        1.4 * cm,   # ValidStatus
+        1.0 * cm,   # ID
+        1.8 * cm,   # Datum
+        2.8 * cm,   # Start
+        2.8 * cm,   # Landung
+        2.5 * cm,   # Glider
+        1.5 * cm,   # Dauer
+        1.5 * cm,   # Distanz
+        4.5 * cm,   # IGC file (needs more space for long filenames)
+        1.8 * cm,   # Status
     ]
     total_requested = sum(col_widths)
+    available_width = doc.width
     if total_requested > available_width:
         scale = available_width / total_requested
         col_widths = [w * scale for w in col_widths]
 
+    # Create table with landscape-friendly settings
     flight_table = Table(table_data, colWidths=col_widths, repeatRows=1)
     flight_table.setStyle(
         TableStyle([
+            # Header row
             ("BACKGROUND", (0, 0), (-1, 0), colors.darkblue),
             ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, 0), 7),
+            # Data rows - smaller font for better fit
+            ("FONTSIZE", (0, 1), (-1, -1), 6.5),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
             ("ALIGN", (0, 0), (-1, -1), "LEFT"),
             ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("FONTSIZE", (0, 0), (-1, 0), 9),
-            ("FONTSIZE", (0, 1), (-1, -1), 8),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-            ("LEFTPADDING", (0, 0), (-1, -1), 4),
-            ("RIGHTPADDING", (0, 0), (-1, -1), 4),
-            ("TOPPADDING", (0, 0), (-1, -1), 4),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ("LEFTPADDING", (0, 0), (-1, -1), 3),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 3),
+            ("TOPPADDING", (0, 0), (-1, -1), 3),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+            # Alternating row colors for readability
+            ("BACKGROUND", (0, 1), (-1, -1), colors.white),
         ])
     )
+    
+    # Add alternating row colors
     for row_idx in range(1, len(table_data)):
         if row_idx % 2 == 0:
             flight_table.setStyle(
                 TableStyle([
-                    ("BACKGROUND", (0, row_idx), (-1, row_idx), colors.lightgrey),
+                    ("BACKGROUND", (0, row_idx), (-1, row_idx), colors.Color(0.95, 0.95, 0.95)),
                 ])
             )
 

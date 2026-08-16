@@ -62,7 +62,7 @@ Die ersten vier Einträge sollten sein:
 1. `README.txt` – Deckblatt mit Piloten-/Absendername, Erstellungsdatum, Anzahl Flüge, Zeitraum und Hinweis zur strukturellen Validierung.
 2. `export_meta.json` – Übersichtsstatistik.
 3. `flights.csv` – Detaillierte Flugtabelle.
-4. `flight_summary.pdf` – Strukturierte PDF-Zusammenfassung.
+4. `flight_summary.pdf` – PDF-Flugbuch im Querformat mit Titel "Flugbuch", Untertitel (Pilot und Zeitraum), Metrik-Tabelle und detaillierter Flugliste.
 
 Danach folgen die IGC-Dateien in der Form:
 
