@@ -39,55 +39,11 @@ DEFAULT_IGC_DIR = Path("data/igc")
 DEFAULT_DB = Path("data/igc-extractor.db")
 DEFAULT_OUTPUT_DIR = Path("data/export")
 DEFAULT_LOG_DIR = Path("data/logs")
+DEFAULT_PILOT_NAME = "Florian Knab"
 
 META_FILENAME = "export_meta.json"
 CSV_FILENAME = "flights.csv"
 README_FILENAME = "README.txt"
-DEFAULT_PILOT_NAME = "Florian Knab"
-README_PLACEHOLDER = "<Pilot / Absender eintragen>"
-README_TEMPLATE = """IGC-Export-Archiv
-==================
-
-Pilot / Absender: {pilot_name}
-Erstellt am:      {generated_at}
-Anzahl Flüge:     {total_flights}
-Zeitraum:         {period_start} bis {period_end}
-Archivformat:     {format}
-
-INHALT
-------
-
-README.txt         Diese Datei
-export_meta.json   Übersichtsstatistik und Export-Metadaten
-flights.csv        Detaillierte Flugtabelle inkl. Validierungsstatus
-<ID>_<Datum>_<Startplatz>.igc   Umbenannte IGC-Dateien
-
-VALIDIERUNG
------------
-
-Der Validierungsstatus in flights.csv ist rein strukturell
-(A-/B-/G-Records, Dateigröße, Lesbarkeit). Die kryptographische
-Prüfung der G-Record-Signatur wird NICHT durchgeführt.
-
-NUTZUNG
--------
-
-Dieses Archiv dient beispielsweise als Nachweis für Höhenflug-
-Meldeverfahren oder zur persönlichen Archivierung.
-
-HINWEIS ZU DEN DISTANZANGABEN
--------------------------------
-
-Die Distanzwerte stammen von dhv-xc.de und beziehen sich auf die
-jeweils erkannte Best-Task-Distanz eines Fluges.
-
-- sum_best_task_distance_km:    Summe der Best-Task-Distanzen aller
-                                Flüge in diesem Archiv.
-- best_single_flight_distance_km:  Größte Best-Task-Distanz eines
-                                   einzelnen Fluges in diesem Archiv.
-- best_single_flight:           IDFlight, FlightDate und TakeoffLocation
-                                des besten einzelnen Fluges.
-"""
 
 
 class _FilenameSanitizer:
@@ -138,7 +94,7 @@ class FlightRecord:
             "LandingLocation": self.landing_location or "",
             "Glider": self.glider or "",
             "FlightDuration": self.flight_duration if self.flight_duration is not None else "",
-            "BestTaskDistance": self.best_task_distance if self.best_task_distance is not None else "",
+            "BestTaskDistanceKm": self.best_task_distance if self.best_task_distance is not None else "",
             "IgcFilenameInArchive": self.archive_filename,
             "ValidStatus": self.valid or "unknown",
             "OriginalIgcFilename": self.igc_filename or "",
@@ -287,24 +243,45 @@ def _compute_meta(flights: list[FlightRecord]) -> dict[str, Any]:
     if flights:
         best_flight = max(
             (f for f in flights if f.best_task_distance is not None),
-            key=lambda f: f.best_task_distance,
+            key=lambda f: f.best_task_distance or 0.0,
             default=None,
         )
+
+    earliest = dates[0] if dates else None
+    latest = dates[-1] if dates else None
+    period_label = ""
+    if earliest and latest:
+        if earliest == latest:
+            period_label = earliest
+        else:
+            period_label = f"{earliest} bis {latest}"
+    elif earliest:
+        period_label = earliest
+    elif latest:
+        period_label = latest
 
     return {
         "total_flights": total_flights,
         "total_igc_files": total_flights,
         "total_flight_duration_minutes": sum(durations) if durations else 0,
-        "sum_best_task_distance_km": round(sum(distances), 3) if distances else 0.0,
-        "best_single_flight_distance_km": round(best_flight.best_task_distance, 3) if best_flight else 0.0,
+        "sum_best_task_distances_km": round(sum(distances), 3) if distances else 0.0,
+        "description_sum_best_task_distances_km": (
+            "Summe der von dhv-xc.de gemeldeten BestTaskDistance-Werte aller "
+            "enthaltenen Fluege. Jeder Wert ist die beste Streckenleistung eines "
+            "einzelnen Fluges (z. B. FAI-Dreieck, flaches Dreieck), nicht seine "
+            "tatsaechlich geflogene Gesamtstrecke."
+        ),
+        "best_single_flight_distance_km": round(best_flight.best_task_distance, 3) if best_flight and best_flight.best_task_distance is not None else None,
         "best_single_flight": {
             "IDFlight": best_flight.id_flight,
             "FlightDate": best_flight.flight_date,
             "TakeoffLocation": best_flight.takeoff_location,
+            "Glider": best_flight.glider,
         } if best_flight else None,
         "period": {
-            "earliest_flight_date": dates[0] if dates else None,
-            "latest_flight_date": dates[-1] if dates else None,
+            "earliest_flight_date": earliest,
+            "latest_flight_date": latest,
+            "period_label": period_label,
         },
         "unique_takeoff_locations": len(takeoffs),
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -315,28 +292,95 @@ def _compute_meta(flights: list[FlightRecord]) -> dict[str, Any]:
     }
 
 
-def _build_readme(meta: dict[str, Any], format: str, pilot_name: str) -> bytes:
-    """Render the README.txt cover sheet in German."""
-    period = meta.get("period") or {}
-    rendered = README_TEMPLATE.format(
-        pilot_name=pilot_name,
-        generated_at=meta.get("generated_at", ""),
-        total_flights=meta.get("total_flights", 0),
-        period_start=period.get("earliest_flight_date") or "–",
-        period_end=period.get("latest_flight_date") or "–",
-        format=format,
-    )
-    return rendered.replace(README_PLACEHOLDER, pilot_name).encode("utf-8")
+def _build_readme(meta: dict[str, Any], pilot_name: str) -> bytes:
+    """Return a short, plain-text README for the archive."""
+    period_label = meta.get("period", {}).get("period_label") or "unbekannter Zeitraum"
+    total_flights = meta.get("total_flights", 0)
+    duration = meta.get("total_flight_duration_minutes", 0)
+    sum_distances = meta.get("sum_best_task_distances_km", 0.0)
+    best_single = meta.get("best_single_flight_distance_km")
+    best_flight = meta.get("best_single_flight")
+    takeoffs = meta.get("unique_takeoff_locations", 0)
+    generated = meta.get("generated_at", "unbekannt")
+
+    lines = [
+        "IGC-Flugarchiv - Kurzbeschreibung",
+        "==================================",
+        "",
+        f"Pilot / Absender: {pilot_name}",
+        f"Dieses Archiv enthaelt {total_flights} IGC-Datei(en) von Paragliding- bzw.",
+        "Gleitschirmfluegen.",
+        "",
+        f"Zeitraum:  {period_label}",
+        f"Startorte: {takeoffs} unterschiedliche(r)",
+        f"Gesamtflugzeit: ca. {duration} Minuten",
+        f"Summe BestTaskDistance: ca. {sum_distances} km",
+    ]
+    if best_single is not None and best_flight:
+        lines.append(
+            f"Bester einzelner Flug: {best_single} km "
+            f"(Flug {best_flight.get('IDFlight')} am {best_flight.get('FlightDate')}, "
+            f"{best_flight.get('TakeoffLocation')})"
+        )
+    lines.extend([
+        f"Erstellt am: {generated}",
+        "",
+        "Wichtiger Hinweis zur Distanz",
+        "-----------------------------",
+        "",
+        "Die Werte 'BestTaskDistance' stammen von dhv-xc.de und beschreiben die",
+        "beste erzielte Streckenleistung eines Fluges (z. B. ein Dreieck), NICHT",
+        "die tatsaechlich zurueckgelegte Flugstrecke. Die Summe ueber alle Fluege",
+        "ist daher keine Gesamtflugstrecke, sondern die Summe aller Einzelbestleistungen.",
+        "",
+        "Enthaltene Dateien",
+        "------------------",
+        "",
+        "README.txt",
+        "  Diese Datei.",
+        "",
+        "export_meta.json",
+        "  Uebersichtsstatistiken zu diesem Export (Anzahl Fluege, Zeitraum,",
+        "  Gesamtflugzeit, Summe der BestTaskDistance-Werte, Hinweis zur Validierung).",
+        "  Kann mit jedem Texteditor oder JSON-Viewer geoeffnet werden.",
+        "",
+        "flights.csv",
+        "  Tabelle mit Details zu jedem Flug: Datum, Start-/Landeplatz, Schirm,",
+        "  Flugdauer, BestTaskDistance in km, Name der IGC-Datei im Archiv und der",
+        "  strukturelle Validierungsstatus. Kann mit Excel, LibreOffice oder",
+        "  einem Texteditor geoeffnet werden.",
+        "",
+        "*.igc",
+        "  Eine IGC-Datei pro Flug. Kann z. B. mit Gleitschirm-Analyse-Software",
+        "  (z. B. XCTrack, SeeYou, XCSoar) oder Online-Plattformen (z. B.",
+        "  dhv-xc.de, XContest, SkyLines) importiert oder direkt angezeigt werden.",
+        "",
+        "Hinweise zur Validierung",
+        "------------------------",
+        "",
+        "Der Validierungsstatus in flights.csv ist rein strukturell geprueft",
+        "(Vorhandensein der A-, B- und G-Records, Dateigroesse, Lesbarkeit).",
+        "Eine kryptographische Pruefung der G-Record-Signatur findet NICHT statt.",
+        "",
+        "Herkunft und Verwendung",
+        "-----------------------",
+        "",
+        "Die Fluege und IGC-Dateien stammen aus dhv-xc.de und koennen fuer",
+        "Nachweise (z. B. Hoehenflug-Nachweis, Vereinsstatistik) verwendet werden.",
+        "",
+        f"Bei Fragen zum Archiv wende dich bitte an {pilot_name}.",
+        "",
+    ])
+    return "\n".join(lines).encode("utf-8")
 
 
-def _write_meta_and_csv(
+def _write_meta_csv_and_readme(
     archive: zipfile.ZipFile | tarfile.TarFile,
     meta: dict[str, Any],
     flights: list[FlightRecord],
-    format: str,
     pilot_name: str,
 ) -> None:
-    readme_bytes = _build_readme(meta, format, pilot_name)
+    readme_bytes = _build_readme(meta, pilot_name)
     meta_bytes = json.dumps(meta, ensure_ascii=False, indent=2).encode("utf-8")
 
     csv_buffer = io.StringIO()
@@ -349,7 +393,7 @@ def _write_meta_and_csv(
             "LandingLocation",
             "Glider",
             "FlightDuration",
-            "BestTaskDistance",
+            "BestTaskDistanceKm",
             "IgcFilenameInArchive",
             "ValidStatus",
             "OriginalIgcFilename",
@@ -399,7 +443,7 @@ def _write_zip_archive(
     missing: list[FlightRecord] = []
 
     with zipfile.ZipFile(output_path, "w", zipfile.ZIP_DEFLATED) as zf:
-        _write_meta_and_csv(zf, meta, flights, "zip", pilot_name)
+        _write_meta_csv_and_readme(zf, meta, flights, pilot_name)
         for flight in flights:
             igc_path = _locate_igc_file(igc_dir, flight)
             if igc_path is None:
@@ -438,7 +482,7 @@ def _write_tar_gz_archive(
     missing: list[FlightRecord] = []
 
     with tarfile.open(output_path, "w:gz") as tf:
-        _write_meta_and_csv(tf, meta, flights, "tar.gz", pilot_name)
+        _write_meta_csv_and_readme(tf, meta, flights, pilot_name)
         for flight in flights:
             igc_path = _locate_igc_file(igc_dir, flight)
             if igc_path is None:

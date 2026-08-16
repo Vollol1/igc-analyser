@@ -34,8 +34,7 @@ Metadaten und Validierungsstatus in ein strukturiertes Archiv.
 ## 2. Standard-Export durchführen
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
-  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_igc_zip.py
+/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python   /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_igc_zip.py
 ```
 
 Eingaben:
@@ -58,16 +57,13 @@ Ausgaben:
 unzip -l data/export/igc_export_<run_id>.zip
 ```
 
-Der erste Eintrag sollte sein:
+Die ersten drei Einträge sollten sein:
 
-1. `README.txt` – Deckblatt mit Piloten-/Absendername, Erstellungsdatum, Anzahl Flüge und Zeitraum.
-
-Danach folgen:
-
+1. `README.txt` – Deckblatt mit Piloten-/Absendername, Erstellungsdatum, Anzahl Flüge, Zeitraum und Hinweis zur Distanz.
 2. `export_meta.json` – Übersichtsstatistik.
 3. `flights.csv` – Detaillierte Flugtabelle.
 
-Anschließend die IGC-Dateien in der Form:
+Danach folgen die IGC-Dateien in der Form:
 
 ```
 <IDFlight>_<FlightDate>_<TakeoffLocation>.igc
@@ -84,15 +80,24 @@ Enthaltene Felder:
 - `total_flights` – Anzahl Flüge im Archiv.
 - `total_igc_files` – Gesamtanzahl IGC-Dateien.
 - `total_flight_duration_minutes` – Summe der Flugdauern.
-- `sum_best_task_distance_km` – Summe der Best-Task-Distanzen aller Flüge.
-- `best_single_flight_distance_km` – Größte Best-Task-Distanz eines einzelnen Fluges.
-- `best_single_flight` – IDFlight, FlightDate und TakeoffLocation des besten einzelnen Fluges.
+- `sum_best_task_distances_km` – Summe der BestTaskDistance-Werte aller Flüge.
+- `description_sum_best_task_distances_km` – Erklärung, dass es sich um die Summe der Best-Task-Distanzen handelt, nicht um die tatsächlich geflogene Gesamtstrecke.
+- `best_single_flight_distance_km` – Größte BestTaskDistance eines einzelnen Fluges.
+- `best_single_flight` – IDFlight, FlightDate, TakeoffLocation und Glider des besten einzelnen Fluges.
 - `period.earliest_flight_date` / `period.latest_flight_date` – Zeitspanne.
 - `unique_takeoff_locations` – Anzahl unterschiedlicher Startplätze.
 - `generated_at` – Erstellungsdatum.
 - `validation_note` – Hinweis auf strukturelle Validierung.
 
-Die Distanzwerte stammen von dhv-xc.de und beziehen sich auf die Best-Task-Distanz eines Fluges.
+**Wichtig:** Die Distanzwerte stammen von dhv-xc.de. `BestTaskDistance` ist die beste erzielte Streckenleistung eines Fluges (z. B. ein FAI-Dreieck), nicht die tatsächlich geflogene Gesamtstrecke. Die Summe über alle Flüge ist daher keine Gesamtflugstrecke, sondern die Summe aller Einzelbestleistungen.
+
+### README ansehen
+
+```bash
+unzip -p data/export/igc_export_<run_id>.zip README.txt
+```
+
+`README.txt` enthält eine kurze Erklärung des Archivinhalts für den Empfänger, Hinweise zur Validierung und den Piloten-/Absendernamen.
 
 ### Flugtabelle ansehen
 
@@ -108,7 +113,7 @@ Spalten:
 - `LandingLocation`
 - `Glider`
 - `FlightDuration` (Minuten)
-- `BestTaskDistance` (km)
+- `BestTaskDistanceKm` (km)
 - `IgcFilenameInArchive`
 - `ValidStatus` (`valid`, `invalid`, `missing` oder `unknown`)
 - `OriginalIgcFilename`
@@ -120,17 +125,13 @@ Spalten:
 ### Eigener Archivname
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
-  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_igc_zip.py \
-  --output-name meine_fluege_2024.zip
+/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python   /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_igc_zip.py   --output-name meine_fluege_2024.zip
 ```
 
 ### Alternativ tar.gz
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
-  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_igc_zip.py \
-  --format tar.gz
+/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python   /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_igc_zip.py   --format tar.gz
 ```
 
 ### Piloten- / Absendernamen ändern
@@ -138,28 +139,15 @@ Spalten:
 Standardmäßig wird `README.txt` mit dem Namen `Florian Knab` erzeugt.
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
-  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_igc_zip.py \
-  --pilot-name "Max Mustermann"
+/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python   /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_igc_zip.py   --pilot-name "Max Mustermann"
 ```
 
 `--sender` ist ein Alias für `--pilot-name`.
 
-### README.txt prüfen
-
-```bash
-unzip -p data/export/igc_export_<run_id>.zip README.txt
-```
-
 ### Pfade überschreiben
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
-  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_igc_zip.py \
-  --igc-dir /pfad/zu/igc \
-  --flights-jsonl /pfad/zu/flights.jsonl \
-  --db /pfad/zu/igc-extractor.db \
-  --output-dir /pfad/zum/export
+/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python   /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_igc_zip.py   --igc-dir /pfad/zu/igc   --flights-jsonl /pfad/zu/flights.jsonl   --db /pfad/zu/igc-extractor.db   --output-dir /pfad/zum/export
 ```
 
 ---
@@ -171,6 +159,7 @@ unzip -p data/export/igc_export_<run_id>.zip README.txt
 | `missing` in Summary | IGC-Datei fehlt in `data/igc/` | Erneut `download_igc.py` laufen lassen |
 | `ValidStatus` = `unknown` | SQLite-DB fehlt oder wurde nicht importiert | `import_flights.py` ausführen |
 | Archiv ist leer | `flights.jsonl` leer oder fehlt | `list_flights.py` erneut ausführen |
+| Distanzwerte wirken unplausibel | BestTaskDistance ist die beste Streckenleistung laut dhv-xc.de, nicht die tatsächlich geflogene Strecke | Hinweis im Archiv beachten; für Track-basierte Distanzen siehe zukünftiges Validierungsfeature |
 
 ---
 
@@ -179,6 +168,7 @@ unzip -p data/export/igc_export_<run_id>.zip README.txt
 - [ ] `data/export/igc_export_<run_id>.zip` ist vorhanden und lesbar.
 - [ ] `export_meta.json` enthält die erwarteten Werte.
 - [ ] `flights.csv` enthält alle erwarteten Spalten und Zeilen.
+- [ ] `README.txt` ist vorhanden und enthält den korrekten Piloten-/Absendernamen.
 - [ ] Anzahl IGC-Dateien im Archiv stimmt mit `total_igc_files` überein.
 - [ ] Keine `.env` oder Log-Dateien wurden committet.
 - [ ] Generierte Archive (`data/export/*.zip`, `data/export/*.tar.gz`) wurden nicht committet.
