@@ -142,7 +142,8 @@ nach `data/logs/list_flights_<run_id>.log` protokolliert.
 ### IGC-Dateien als ZIP exportieren
 
 Nachdem Download und Import durchgelaufen sind, können alle lokalen IGC-Dateien
-mit Metadaten und Validierungsstatus in ein ZIP-Archiv gepackt werden:
+mit Metadaten und Validierungsstatus in ein ZIP- oder tar.gz-Archiv gepackt
+werden:
 
 ```bash
 /home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
@@ -151,6 +152,8 @@ mit Metadaten und Validierungsstatus in ein ZIP-Archiv gepackt werden:
 
 Das Archiv landet unter `data/export/igc_export_<run_id>.zip` und enthält:
 
+- `README.txt` – Deckblatt mit Piloten-/Absendername, Erstellungsdatum,
+  Anzahl Flüge und Zeitraum.
 - `export_meta.json` – Übersicht (Anzahl Flüge, Gesamtflugzeit, Gesamtdistanz,
   Zeitraum, Startplätze, Erstellungsdatum, Validierungshinweis).
 - `flights.csv` – Detaillierte Flugtabelle inkl. `IDFlight`, `FlightDate`,
@@ -161,12 +164,17 @@ Das Archiv landet unter `data/export/igc_export_<run_id>.zip` und enthält:
 
 Optionale Parameter:
 
+- `--pilot-name "Max Mustermann"` – Name für das Deckblatt `README.txt`.
+  `--sender` ist ein Alias. Standard ist `Florian Knab`.
 - `--output-dir data/export` – Zielverzeichnis für das Archiv.
 - `--igc-dir data/igc` – Verzeichnis mit den lokalen IGC-Dateien.
 - `--flights-jsonl data/processed/flights.jsonl` – Quelle der Flugmetadaten.
 - `--db data/igc-extractor.db` – SQLite-DB für den Validierungsstatus.
 - `--output-name mein_export.zip` – Expliziter Archivname.
 - `--format tar.gz` – Alternativ ein tar.gz-Archiv erzeugen.
+
+Details und eine Schritt-für-Schritt-Anleitung stehen im
+[IGC-Export-Runbook](docs/runbooks/export-igc.md).
 
 ## Credentials / Secrets
 

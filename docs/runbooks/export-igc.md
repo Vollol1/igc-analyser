@@ -4,6 +4,7 @@
 > - [ ] `data/igc/` enthält die zu exportierenden IGC-Dateien.
 > - [ ] Optional: `data/igc-extractor.db` ist vorhanden, damit der Validierungsstatus in `flights.csv` landet.
 > - [ ] Zielverzeichnis `data/export/` existiert oder wird automatisch angelegt.
+> - [ ] Generierte Archive (`*.zip`, `*.tar.gz`) nicht in Git committen — sie stehen in `.gitignore`.
 
 # Runbook: IGC-Dateien als ZIP exportieren
 
@@ -45,7 +46,7 @@ Eingaben:
 
 Ausgaben:
 
-- `data/export/igc_export_<run_id>.zip` – Archiv mit `export_meta.json`, `flights.csv` und allen IGC-Dateien.
+- `data/export/igc_export_<run_id>.zip` – Archiv mit `README.txt`, `export_meta.json`, `flights.csv` und allen IGC-Dateien.
 - Log unter `data/logs/export_igc_zip_<run_id>.log`.
 - Summary unter `data/logs/export_igc_zip_summary_<run_id>.json`.
 
@@ -57,12 +58,16 @@ Ausgaben:
 unzip -l data/export/igc_export_<run_id>.zip
 ```
 
-Die ersten beiden Einträge sollten sein:
+Der erste Eintrag sollte sein:
 
-1. `export_meta.json` – Übersichtsstatistik.
-2. `flights.csv` – Detaillierte Flugtabelle.
+1. `README.txt` – Deckblatt mit Piloten-/Absendername, Erstellungsdatum, Anzahl Flüge und Zeitraum.
 
-Danach folgen die IGC-Dateien in der Form:
+Danach folgen:
+
+2. `export_meta.json` – Übersichtsstatistik.
+3. `flights.csv` – Detaillierte Flugtabelle.
+
+Anschließend die IGC-Dateien in der Form:
 
 ```
 <IDFlight>_<FlightDate>_<TakeoffLocation>.igc
@@ -124,6 +129,24 @@ Spalten:
   --format tar.gz
 ```
 
+### Piloten- / Absendernamen ändern
+
+Standardmäßig wird `README.txt` mit dem Namen `Florian Knab` erzeugt.
+
+```bash
+/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
+  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_igc_zip.py \
+  --pilot-name "Max Mustermann"
+```
+
+`--sender` ist ein Alias für `--pilot-name`.
+
+### README.txt prüfen
+
+```bash
+unzip -p data/export/igc_export_<run_id>.zip README.txt
+```
+
 ### Pfade überschreiben
 
 ```bash
@@ -154,6 +177,7 @@ Spalten:
 - [ ] `flights.csv` enthält alle erwarteten Spalten und Zeilen.
 - [ ] Anzahl IGC-Dateien im Archiv stimmt mit `total_igc_files` überein.
 - [ ] Keine `.env` oder Log-Dateien wurden committet.
+- [ ] Generierte Archive (`data/export/*.zip`, `data/export/*.tar.gz`) wurden nicht committet.
 
 ---
 

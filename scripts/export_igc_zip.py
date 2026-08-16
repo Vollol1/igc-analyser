@@ -6,6 +6,7 @@ This script reads flight metadata from ``data/processed/flights.jsonl`` and
 optionally the validation status from ``data/igc-extractor.db``. It creates a
 ZIP archive containing:
 
+- ``README.txt``        : human readable cover sheet with pilot/sender name.
 - ``export_meta.json``  : overview statistics and export metadata.
 - ``flights.csv``       : detailed flight table.
 - ``<IDFlight>_<FlightDate>_<TakeoffLocation>.igc`` : renamed IGC files.
@@ -41,6 +42,39 @@ DEFAULT_LOG_DIR = Path("data/logs")
 
 META_FILENAME = "export_meta.json"
 CSV_FILENAME = "flights.csv"
+README_FILENAME = "README.txt"
+DEFAULT_PILOT_NAME = "Florian Knab"
+README_PLACEHOLDER = "<Pilot / Absender eintragen>"
+README_TEMPLATE = """IGC-Export-Archiv
+==================
+
+Pilot / Absender: {pilot_name}
+Erstellt am:      {generated_at}
+Anzahl Flüge:     {total_flights}
+Zeitraum:         {period_start} bis {period_end}
+Archivformat:     {format}
+
+INHALT
+------
+
+README.txt         Diese Datei
+export_meta.json   Übersichtsstatistik und Export-Metadaten
+flights.csv        Detaillierte Flugtabelle inkl. Validierungsstatus
+<ID>_<Datum>_<Startplatz>.igc   Umbenannte IGC-Dateien
+
+VALIDIERUNG
+-----------
+
+Der Validierungsstatus in flights.csv ist rein strukturell
+(A-/B-/G-Records, Dateigröße, Lesbarkeit). Die kryptographische
+Prüfung der G-Record-Signatur wird NICHT durchgeführt.
+
+NUTZUNG
+-------
+
+Dieses Archiv dient beispielsweise als Nachweis für Höhenflug-
+Meldeverfahren oder zur persönlichen Archivierung.
+"""
 
 
 class _FilenameSanitizer:
@@ -254,11 +288,28 @@ def _compute_meta(flights: list[FlightRecord]) -> dict[str, Any]:
     }
 
 
+def _build_readme(meta: dict[str, Any], format: str, pilot_name: str) -> bytes:
+    """Render the README.txt cover sheet in German."""
+    period = meta.get("period") or {}
+    rendered = README_TEMPLATE.format(
+        pilot_name=pilot_name,
+        generated_at=meta.get("generated_at", ""),
+        total_flights=meta.get("total_flights", 0),
+        period_start=period.get("earliest_flight_date") or "–",
+        period_end=period.get("latest_flight_date") or "–",
+        format=format,
+    )
+    return rendered.replace(README_PLACEHOLDER, pilot_name).encode("utf-8")
+
+
 def _write_meta_and_csv(
     archive: zipfile.ZipFile | tarfile.TarFile,
     meta: dict[str, Any],
     flights: list[FlightRecord],
+    format: str,
+    pilot_name: str,
 ) -> None:
+    readme_bytes = _build_readme(meta, format, pilot_name)
     meta_bytes = json.dumps(meta, ensure_ascii=False, indent=2).encode("utf-8")
 
     csv_buffer = io.StringIO()
@@ -283,12 +334,18 @@ def _write_meta_and_csv(
     csv_bytes = csv_buffer.getvalue().encode("utf-8")
 
     if isinstance(archive, zipfile.ZipFile):
+        archive.writestr(README_FILENAME, readme_bytes)
         archive.writestr(META_FILENAME, meta_bytes)
         archive.writestr(CSV_FILENAME, csv_bytes)
         return
 
     # tar.gz path
     now = datetime.now(timezone.utc).timestamp()
+    readme_info = tarfile.TarInfo(name=README_FILENAME)
+    readme_info.size = len(readme_bytes)
+    readme_info.mtime = now
+    archive.addfile(readme_info, io.BytesIO(readme_bytes))
+
     meta_info = tarfile.TarInfo(name=META_FILENAME)
     meta_info.size = len(meta_bytes)
     meta_info.mtime = now
@@ -305,6 +362,7 @@ def _write_zip_archive(
     flights: list[FlightRecord],
     igc_dir: Path,
     logger: logging.Logger,
+    pilot_name: str,
 ) -> tuple[list[FlightRecord], list[FlightRecord]]:
     """Write the ZIP archive. Returns (exported, missing)."""
     meta = _compute_meta(flights)
@@ -314,7 +372,7 @@ def _write_zip_archive(
     missing: list[FlightRecord] = []
 
     with zipfile.ZipFile(output_path, "w", zipfile.ZIP_DEFLATED) as zf:
-        _write_meta_and_csv(zf, meta, flights)
+        _write_meta_and_csv(zf, meta, flights, "zip", pilot_name)
         for flight in flights:
             igc_path = _locate_igc_file(igc_dir, flight)
             if igc_path is None:
@@ -343,6 +401,7 @@ def _write_tar_gz_archive(
     flights: list[FlightRecord],
     igc_dir: Path,
     logger: logging.Logger,
+    pilot_name: str,
 ) -> tuple[list[FlightRecord], list[FlightRecord]]:
     """Write a tar.gz archive. Returns (exported, missing)."""
     meta = _compute_meta(flights)
@@ -352,7 +411,7 @@ def _write_tar_gz_archive(
     missing: list[FlightRecord] = []
 
     with tarfile.open(output_path, "w:gz") as tf:
-        _write_meta_and_csv(tf, meta, flights)
+        _write_meta_and_csv(tf, meta, flights, "tar.gz", pilot_name)
         for flight in flights:
             igc_path = _locate_igc_file(igc_dir, flight)
             if igc_path is None:
@@ -429,6 +488,17 @@ def _parse_args(args: Optional[list[str]] = None) -> argparse.Namespace:
         default=None,
         help="Explicit run ID (default: UTC timestamp YYYYMMDD_HHMMSS_uuid).",
     )
+    parser.add_argument(
+        "--pilot-name",
+        "--sender",
+        type=str,
+        default=DEFAULT_PILOT_NAME,
+        dest="pilot_name",
+        help=(
+            "Name of the pilot or sender to write into README.txt "
+            f"(default: {DEFAULT_PILOT_NAME})."
+        ),
+    )
     return parser.parse_args(args)
 
 
@@ -464,6 +534,7 @@ def main(args: Optional[list[str]] = None) -> int:
     logger.info("db:            %s", db)
     logger.info("output_dir:    %s", output_dir)
     logger.info("format:        %s", parsed.format)
+    logger.info("pilot_name:    %s", parsed.pilot_name)
 
     try:
         flights, skipped = _build_flights(flights_jsonl, db)
@@ -485,9 +556,9 @@ def main(args: Optional[list[str]] = None) -> int:
     output_path = output_dir / archive_name
 
     if parsed.format == "zip":
-        exported, missing = _write_zip_archive(output_path, flights, igc_dir, logger)
+        exported, missing = _write_zip_archive(output_path, flights, igc_dir, logger, parsed.pilot_name)
     else:
-        exported, missing = _write_tar_gz_archive(output_path, flights, igc_dir, logger)
+        exported, missing = _write_tar_gz_archive(output_path, flights, igc_dir, logger, parsed.pilot_name)
 
     finished_at = datetime.now(timezone.utc).isoformat()
     summary = {

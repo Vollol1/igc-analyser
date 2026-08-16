@@ -73,9 +73,15 @@ _(keine)_
 ## Mittelfristig geplant
 
 - [ ] Datenqualität weiterhin gelegentlich prüfen (z. B. nach jedem größeren Download).
-- [ ] IGC-Export für Höhenflug-Nachweis (v0.3.0, siehe ROADMAP)
-  - Sinnvoll formatierte Flugberichte/Listen exportieren (PDF oder strukturierte CSV).
-  - Siehe auch [`docs/ROADMAP.md`](./ROADMAP.md).
+- [x] IGC-Export für Höhenflug-Nachweis (v0.3.0, siehe ROADMAP)
+  - `scripts/export_igc_zip.py` erstellt ein ZIP/tar.gz-Archiv mit `README.txt`, `export_meta.json`, `flights.csv` und den IGC-Dateien.
+  - `README.txt` enthält den Piloten-/Absendernamen (Parameter `--pilot-name` / `--sender`).
+  - Generierte Archive stehen in `.gitignore`.
+  - Siehe auch [`docs/ROADMAP.md`](./ROADMAP.md) und [`docs/runbooks/export-igc.md`](../runbooks/export-igc.md).
+- [ ] Validierungs- und Ausreisser-Checks für Flugdaten
+  - Längster Flug / maximale Distanz können laut Benutzer-Feedback nicht stimmen – Track hat Fehler.
+  - Plausibilitätsprüfung für Distanz, Flugzeit und Höhenmeter einführen.
+  - Auffällige Flüge in `flights.csv`/Datenbank markieren oder in separates Protokoll ausgeben.
 
 ## Abgeschlossen
 

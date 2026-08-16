@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `docs/ROADMAP.md` with planned releases v0.2.0–v0.5.0.
+- `scripts/export_igc_zip.py` now writes a `README.txt` cover sheet into every
+  archive, including the pilot/sender name (default: `Florian Knab`,
+  configurable via `--pilot-name` / `--sender`). Generated `*.zip` and `*.tar.gz`
+  archives under `data/export/` are ignored by Git.
 
 ### Changed
 - Consolidated and cleaned up project documentation (`README.md`, `docs/TODO.md`, agent notes, pipeline notes).
