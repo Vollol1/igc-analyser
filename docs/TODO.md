@@ -47,6 +47,12 @@ _(keine)_
   - Importiert `flights.jsonl` + IGC-Dateien in `data/igc-extractor.db`.
   - Führt strukturelle Minimalvalidierung durch (A/B/G-Records, Größe, UTF-8).
   - Erzeugt `data/export/flights_overview.json`.
+- [x] `scripts/export_igc_zip.py` erstellt
+  - Packt lokale IGC-Dateien aus `data/igc/` in ein ZIP-Archiv nach `data/export/igc_export_<run_id>.zip`.
+  - Benennt Dateien im Archiv als `<IDFlight>_<FlightDate>_<TakeoffLocation>.igc`.
+  - Schreibt `export_meta.json` (Übersichtsstatistik) und `flights.csv` (Flugtabelle inkl. Valid-Status) ganz oben in das Archiv.
+  - Unterstützt `--format zip` und `--format tar.gz`.
+  - Log nach `data/logs/export_igc_zip_<run_id>.log`, Summary nach `data/logs/export_igc_zip_summary_<run_id>.json`.
 - [x] Login-Mechanismus dokumentieren und robust gegen Token-/Layout-Änderungen machen
 - [x] Rate-Limiting / Retry-Logik für Downloads ergänzen
 - [x] IGC-Validierung korrigiert und dokumentiert

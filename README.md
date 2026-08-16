@@ -33,7 +33,8 @@ igc-extractor/
 │   ├── list_flights.py       # Flugliste auslesen → JSONL
 │   ├── download_igc.py       # IGC-Dateien herunterladen
 │   ├── dhv_xc_client.py      # Authentifizierter HTTP-Client
-│   └── import_flights.py     # Import + Validierung in SQLite
+│   ├── import_flights.py     # Import + Validierung in SQLite
+│   └── export_igc_zip.py     # Lokale IGC-Dateien als ZIP/TAR.GZ exportieren
 ├── .env.example              # Beispiel-Konfiguration (keine echten Werte)
 ├── .gitignore                # Ausschluss von .env, venv, Logs, DBs, IGCs …
 ├── requirements.txt          # Python-Abhängigkeiten
@@ -137,6 +138,35 @@ Flüge einschließen* alle eigenen Flüge aus und schreibt sie idempotent nach
 `data/processed/flights.jsonl`. Pro Flug werden ID, Datum, Startplatz, Gleitschirm,
 Best-Task-Distanz, Flugdauer und die IGC-Download-URL gespeichert. Läufe werden
 nach `data/logs/list_flights_<run_id>.log` protokolliert.
+
+### IGC-Dateien als ZIP exportieren
+
+Nachdem Download und Import durchgelaufen sind, können alle lokalen IGC-Dateien
+mit Metadaten und Validierungsstatus in ein ZIP-Archiv gepackt werden:
+
+```bash
+/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
+  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_igc_zip.py
+```
+
+Das Archiv landet unter `data/export/igc_export_<run_id>.zip` und enthält:
+
+- `export_meta.json` – Übersicht (Anzahl Flüge, Gesamtflugzeit, Gesamtdistanz,
+  Zeitraum, Startplätze, Erstellungsdatum, Validierungshinweis).
+- `flights.csv` – Detaillierte Flugtabelle inkl. `IDFlight`, `FlightDate`,
+  `TakeoffLocation`, `Glider`, `FlightDuration`, `BestTaskDistance`,
+  `IgcFilenameInArchive` und `ValidStatus` (sofern in der Datenbank vorhanden).
+- `<IDFlight>_<FlightDate>_<TakeoffLocation>.igc` – Die IGC-Dateien mit
+  sprechenden Dateinamen.
+
+Optionale Parameter:
+
+- `--output-dir data/export` – Zielverzeichnis für das Archiv.
+- `--igc-dir data/igc` – Verzeichnis mit den lokalen IGC-Dateien.
+- `--flights-jsonl data/processed/flights.jsonl` – Quelle der Flugmetadaten.
+- `--db data/igc-extractor.db` – SQLite-DB für den Validierungsstatus.
+- `--output-name mein_export.zip` – Expliziter Archivname.
+- `--format tar.gz` – Alternativ ein tar.gz-Archiv erzeugen.
 
 ## Credentials / Secrets
 
