@@ -80,6 +80,11 @@ _(keine)_
   - PDF-Generierung über `reportlab>=4.0.0` (reiner Python, keine externen System-Dependencies); siehe [ADR-002](../decisions/ADR-002-pdf-reporting-reportlab.md).
   - Generierte Archive stehen in `.gitignore`.
   - Siehe auch [`docs/ROADMAP.md`](./ROADMAP.md) und [`docs/runbooks/export-igc.md`](../runbooks/export-igc.md).
+- [ ] `LandingLocation` aus DHV-XC Detailseite scrapen und in Export aufnehmen
+  - Die Flugliste (`/flights?mine=1&incpriv=1`) liefert `LandingLocation` nicht.
+  - Auf der Detailseite (`/flight/<IDFlight>`) ist `LandingLocation` im
+    JavaScript-Block `kers.app.fli.handler.init(...)` verfügbar.
+  - Erfordert einen zusätzlichen HTTP-Request pro Flug sowie Retry-/Rate-Limit-Logik.
 - [ ] Validierungs- und Ausreisser-Checks für Flugdaten
   - Längster Flug / maximale Distanz können laut Benutzer-Feedback nicht stimmen – Track hat Fehler.
   - Plausibilitätsprüfung für Distanz, Flugzeit und Höhenmeter einführen.

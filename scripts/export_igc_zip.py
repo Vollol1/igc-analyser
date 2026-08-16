@@ -75,7 +75,6 @@ class FlightRecord:
     id_flight: int
     flight_date: Optional[str]
     takeoff_location: Optional[str]
-    landing_location: Optional[str]
     glider: Optional[str]
     flight_duration: Optional[int]
     best_task_distance: Optional[float]
@@ -99,7 +98,6 @@ class FlightRecord:
             "IDFlight": self.id_flight,
             "FlightDate": self.flight_date or "",
             "TakeoffLocation": self.takeoff_location or "",
-            "LandingLocation": self.landing_location or "",
             "Glider": self.glider or "",
             "FlightDuration": self.flight_duration if self.flight_duration is not None else "",
             "BestTaskDistanceKm": self.best_task_distance if self.best_task_distance is not None else "",
@@ -190,7 +188,6 @@ def _parse_flight(record: dict[str, Any]) -> FlightRecord:
         id_flight=int(flight_id),
         flight_date=record.get("FlightDate") or None,
         takeoff_location=record.get("TakeoffLocation") or None,
-        landing_location=record.get("LandingLocation") or None,
         glider=record.get("Glider") or None,
         flight_duration=_to_int(record.get("FlightDuration")),
         best_task_distance=_to_float(record.get("BestTaskDistance")),
@@ -473,12 +470,11 @@ def _build_pdf(meta: dict[str, Any], flights: list[FlightRecord], pilot_name: st
     story.append(Paragraph("<b>Flugliste</b>", styles["Heading2"]))
     story.append(Spacer(1, 0.2 * cm))
     
-    # Column headers - removed "IGC-Datei", shortened others
+    # Column headers - removed "IGC-Datei" and "Landung", shortened others
     table_headers = [
         "ID",
         "Datum",
         "Start",
-        "Landung",
         "Glider",
         "Dauer\n(min)",
         "Distanz\n(km)",
@@ -492,7 +488,6 @@ def _build_pdf(meta: dict[str, Any], flights: list[FlightRecord], pilot_name: st
             _format_value(flight.id_flight),
             _format_value(flight.flight_date),
             _shorten_location(flight.takeoff_location),
-            _shorten_location(flight.landing_location),
             _format_value(flight.glider),
             _format_value(flight.flight_duration),
             _format_value(flight.best_task_distance),
@@ -505,14 +500,13 @@ def _build_pdf(meta: dict[str, Any], flights: list[FlightRecord], pilot_name: st
     col_widths = [
         1.0 * cm,   # ID - narrow
         1.8 * cm,   # Datum (DD.MM.YYYY)
-        3.5 * cm,   # Start (shortened)
-        3.5 * cm,   # Landung (shortened)
-        3.0 * cm,   # Glider
+        4.5 * cm,   # Start (shortened) - extra space after removing Landung
+        4.0 * cm,   # Glider
         1.6 * cm,   # Dauer
         1.8 * cm,   # Distanz
         1.9 * cm,   # Status
     ]
-    # Total: 18.1 cm - well within available width
+    # Total: 16.6 cm - well within available width, but uses the page nicely
     
     # Create table with landscape-friendly settings
     flight_table = Table(table_data, colWidths=col_widths, repeatRows=1)
@@ -572,7 +566,6 @@ def _write_meta_csv_and_readme(
             "IDFlight",
             "FlightDate",
             "TakeoffLocation",
-            "LandingLocation",
             "Glider",
             "FlightDuration",
             "BestTaskDistanceKm",

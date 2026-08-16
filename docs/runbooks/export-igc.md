@@ -113,13 +113,19 @@ Spalten:
 - `IDFlight`
 - `FlightDate`
 - `TakeoffLocation`
-- `LandingLocation`
 - `Glider`
 - `FlightDuration` (Minuten)
 - `BestTaskDistanceKm` (km)
 - `IgcFilenameInArchive`
 - `ValidStatus` (`valid`, `invalid`, `missing` oder `unknown`)
 - `OriginalIgcFilename`
+
+> **Hinweis:** Die Landeplatz-Spalte (`LandingLocation`) ist aktuell nicht
+> enthalten, weil die DHV-XC-Flugliste (`/flights?mine=1&incpriv=1`) dieses Feld
+> nicht liefert. Auf der Detailseite `/flight/<IDFlight>` steht der Wert im
+> JavaScript-Initialisierungsblock `kers.app.fli.handler.init(...)`; für eine
+> zukünftige Erweiterung müsste pro Flug die Detailseite aufgerufen werden. Siehe
+> [`docs/notes/dhv-xc-api.md`](../notes/dhv-xc-api.md).
 
 ---
 

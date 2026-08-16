@@ -217,6 +217,59 @@ https://www.dhv-xc.de/flight/{IDFlight}/igc
 | `IgcUrl`           | constructed from `IDFlight`                         | `/flight/{id}/igc` |
 | `ExtractedAt`      | generated                                           | UTC ISO-8601   |
 
+## Missing fields in the flight list
+
+The `/api/fli/flights` endpoint (used by the "only mine" / "include private"
+grid with filters `mine=1` and `incpriv=1`) does **not** return a landing
+location. The response rows contain takeoff, glider, duration and best task
+distance, but no `LandingLocation` field.
+
+## Flight detail page: landing location
+
+Although the flight list omits it, the landing location is available on the
+individual flight detail page:
+
+```text
+GET /flight/<IDFlight>
+```
+
+The server-rendered HTML contains an inline `<script>` block that bootstraps the
+flight detail handler, e.g.:
+
+```js
+kers.app.fli.handler.init({
+    ...
+    LandingLocation: "Some Landing Place, Region, Country",
+    ...
+});
+```
+
+So `LandingLocation` can be scraped from that initialization object if needed.
+
+### Future extension options
+
+To include `LandingLocation` in the export, one of the following approaches
+would work:
+
+1. Enrich in `list_flights.py`:
+   - After fetching the flight list, request `/flight/<IDFlight>` for every
+     flight.
+   - Parse the `kers.app.fli.handler.init(...)` script block and extract
+     `LandingLocation`.
+   - Add it to the `FlightRecord` / JSONL output.
+   - Cost: **one extra HTTP request per flight** and additional rate-limiting /
+     retry logic.
+
+2. Lazy enrichment in `export_igc_zip.py`:
+   - Keep the JSONL schema as-is.
+   - When building the export, optionally query detail pages and add
+     `LandingLocation` to the CSV/PDF on demand.
+   - Cost: same per-flight request load, but only incurred when an export is
+     generated.
+
+Until one of these is implemented, `LandingLocation` is intentionally left
+out of the export because the flight list does not provide it reliably.
+
 ## Manual interventions / limitations
 
 - **Credentials**: must be provided by the user in `.env` or environment variables.

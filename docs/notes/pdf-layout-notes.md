@@ -47,16 +47,20 @@ Die Flugtabelle verwendet folgende Spalten mit optimierten Breiten:
 |--------|--------|--------------|
 | ID | 1.0 cm | Flug-ID (kompakt) |
 | Datum | 1.8 cm | Flugdatum (YYYY-MM-DD) |
-| Start | 3.5 cm | Startplatz (**gekürzt**, nur Ortsname ohne Region/Land) |
-| Landung | 3.5 cm | Landeplatz (**gekürzt**, nur Ortsname ohne Region/Land) |
-| Glider | 3.0 cm | Fluggerät |
+| Start | 4.5 cm | Startplatz (**gekürzt**, nur Ortsname ohne Region/Land) |
+| Glider | 4.0 cm | Fluggerät |
 | Dauer (min) | 1.6 cm | Flugdauer in Minuten |
 | Distanz (km) | 1.8 cm | BestTaskDistance in km |
 | Status | 1.9 cm | Validierungsstatus (deutsch: "valid", "invalid", "unbekannt") |
 
-**Entfernt**: Spalte "IGC-Datei" (redundant, Dateinamen sind im Archiv und in `flights.csv` enthalten)
+**Entfernt**:
 
-**Gesamtbreite**: ~18.1 cm (deutlich unter der verfügbaren Breite von 28.1 cm)
+- Spalte "IGC-Datei" (redundant, Dateinamen sind im Archiv und in `flights.csv` enthalten).
+- Spalte "Landung" (`LandingLocation`). Die DHV-XC-Flugliste liefert dieses Feld nicht; es
+  steht nur auf der Detailseite (`/flight/<IDFlight>`) im `kers.app.fli.handler.init(...)`
+  JavaScript-Block. Siehe [`dhv-xc-api.md`](./dhv-xc-api.md).
+
+**Gesamtbreite**: ~16.6 cm (deutlich unter der verfügbaren Breite von 28.1 cm)
 
 **Ortsnamen-Kürzung**: Die Funktion `_shorten_location()` entfernt Region/Land-Teile nach dem ersten Komma.
 - Beispiel: "Eben am Achensee, Schwaz, Tirol" → "Eben am Achensee"

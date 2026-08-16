@@ -107,14 +107,13 @@ def upsert_flight(
         conn.execute(
             """
             INSERT INTO flights (
-                IDFlight, FlightDate, TakeoffLocation, LandingLocation,
+                IDFlight, FlightDate, TakeoffLocation,
                 Glider, BestTaskDistance, FlightDuration, IgcFilename,
                 IgcFileHash, DownloadedAt, Valid, ValidationReason, LastUpdated
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(IDFlight) DO UPDATE SET
                 FlightDate=excluded.FlightDate,
                 TakeoffLocation=excluded.TakeoffLocation,
-                LandingLocation=excluded.LandingLocation,
                 Glider=excluded.Glider,
                 BestTaskDistance=excluded.BestTaskDistance,
                 FlightDuration=excluded.FlightDuration,
@@ -129,7 +128,6 @@ def upsert_flight(
                 flight.get("IDFlight"),
                 flight.get("FlightDate"),
                 flight.get("TakeoffLocation"),
-                flight.get("LandingLocation"),
                 flight.get("Glider"),
                 _to_float(flight.get("BestTaskDistance")),
                 _to_int(flight.get("FlightDuration")),
