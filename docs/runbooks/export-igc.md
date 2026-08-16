@@ -59,7 +59,7 @@ unzip -l data/export/igc_export_<run_id>.zip
 
 Die ersten drei Einträge sollten sein:
 
-1. `README.txt` – Deckblatt mit Piloten-/Absendername, Erstellungsdatum, Anzahl Flüge, Zeitraum und Hinweis zur Distanz.
+1. `README.txt` – Deckblatt mit Piloten-/Absendername, Erstellungsdatum, Anzahl Flüge, Zeitraum und Hinweis zur strukturellen Validierung.
 2. `export_meta.json` – Übersichtsstatistik.
 3. `flights.csv` – Detaillierte Flugtabelle.
 
@@ -80,16 +80,13 @@ Enthaltene Felder:
 - `total_flights` – Anzahl Flüge im Archiv.
 - `total_igc_files` – Gesamtanzahl IGC-Dateien.
 - `total_flight_duration_minutes` – Summe der Flugdauern.
-- `sum_best_task_distances_km` – Summe der BestTaskDistance-Werte aller Flüge.
-- `description_sum_best_task_distances_km` – Erklärung, dass es sich um die Summe der Best-Task-Distanzen handelt, nicht um die tatsächlich geflogene Gesamtstrecke.
+- `sum_xc_distance_overall_flights` – Summe der BestTaskDistance-Werte aller Flüge (km).
 - `best_single_flight_distance_km` – Größte BestTaskDistance eines einzelnen Fluges.
 - `best_single_flight` – IDFlight, FlightDate, TakeoffLocation und Glider des besten einzelnen Fluges.
 - `period.earliest_flight_date` / `period.latest_flight_date` – Zeitspanne.
 - `unique_takeoff_locations` – Anzahl unterschiedlicher Startplätze.
 - `generated_at` – Erstellungsdatum.
 - `validation_note` – Hinweis auf strukturelle Validierung.
-
-**Wichtig:** Die Distanzwerte stammen von dhv-xc.de. `BestTaskDistance` ist die beste erzielte Streckenleistung eines Fluges (z. B. ein FAI-Dreieck), nicht die tatsächlich geflogene Gesamtstrecke. Die Summe über alle Flüge ist daher keine Gesamtflugstrecke, sondern die Summe aller Einzelbestleistungen.
 
 ### README ansehen
 
@@ -159,7 +156,7 @@ Standardmäßig wird `README.txt` mit dem Namen `Florian Knab` erzeugt.
 | `missing` in Summary | IGC-Datei fehlt in `data/igc/` | Erneut `download_igc.py` laufen lassen |
 | `ValidStatus` = `unknown` | SQLite-DB fehlt oder wurde nicht importiert | `import_flights.py` ausführen |
 | Archiv ist leer | `flights.jsonl` leer oder fehlt | `list_flights.py` erneut ausführen |
-| Distanzwerte wirken unplausibel | BestTaskDistance ist die beste Streckenleistung laut dhv-xc.de, nicht die tatsächlich geflogene Strecke | Hinweis im Archiv beachten; für Track-basierte Distanzen siehe zukünftiges Validierungsfeature |
+| Distanzwerte wirken unplausibel | In `flights.csv` steht `BestTaskDistance` (beste Streckenleistung), nicht die tatsächlich geflogene Strecke | Für Track-basierte Distanzen siehe zukünftiges Validierungsfeature |
 
 ---
 

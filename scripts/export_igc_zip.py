@@ -264,13 +264,7 @@ def _compute_meta(flights: list[FlightRecord]) -> dict[str, Any]:
         "total_flights": total_flights,
         "total_igc_files": total_flights,
         "total_flight_duration_minutes": sum(durations) if durations else 0,
-        "sum_best_task_distances_km": round(sum(distances), 3) if distances else 0.0,
-        "description_sum_best_task_distances_km": (
-            "Summe der von dhv-xc.de gemeldeten BestTaskDistance-Werte aller "
-            "enthaltenen Fluege. Jeder Wert ist die beste Streckenleistung eines "
-            "einzelnen Fluges (z. B. FAI-Dreieck, flaches Dreieck), nicht seine "
-            "tatsaechlich geflogene Gesamtstrecke."
-        ),
+        "sum_xc_distance_overall_flights": round(sum(distances), 3) if distances else 0.0,
         "best_single_flight_distance_km": round(best_flight.best_task_distance, 3) if best_flight and best_flight.best_task_distance is not None else None,
         "best_single_flight": {
             "IDFlight": best_flight.id_flight,
@@ -297,7 +291,7 @@ def _build_readme(meta: dict[str, Any], pilot_name: str) -> bytes:
     period_label = meta.get("period", {}).get("period_label") or "unbekannter Zeitraum"
     total_flights = meta.get("total_flights", 0)
     duration = meta.get("total_flight_duration_minutes", 0)
-    sum_distances = meta.get("sum_best_task_distances_km", 0.0)
+    sum_distances = meta.get("sum_xc_distance_overall_flights", 0.0)
     best_single = meta.get("best_single_flight_distance_km")
     best_flight = meta.get("best_single_flight")
     takeoffs = meta.get("unique_takeoff_locations", 0)
@@ -311,10 +305,10 @@ def _build_readme(meta: dict[str, Any], pilot_name: str) -> bytes:
         f"Dieses Archiv enthaelt {total_flights} IGC-Datei(en) von Paragliding- bzw.",
         "Gleitschirmfluegen.",
         "",
-        f"Zeitraum:  {period_label}",
-        f"Startorte: {takeoffs} unterschiedliche(r)",
-        f"Gesamtflugzeit: ca. {duration} Minuten",
-        f"Summe BestTaskDistance: ca. {sum_distances} km",
+        f"Zeitraum:          {period_label}",
+        f"Startorte:         {takeoffs} unterschiedliche(r)",
+        f"Gesamtflugzeit:    ca. {duration} Minuten",
+        f"Summe XC-Distanz:  ca. {sum_distances} km",
     ]
     if best_single is not None and best_flight:
         lines.append(
@@ -323,50 +317,13 @@ def _build_readme(meta: dict[str, Any], pilot_name: str) -> bytes:
             f"{best_flight.get('TakeoffLocation')})"
         )
     lines.extend([
-        f"Erstellt am: {generated}",
+        f"Erstellt am:       {generated}",
         "",
-        "Wichtiger Hinweis zur Distanz",
-        "-----------------------------",
+        "Hinweis zur strukturellen Validierung",
+        "-------------------------------------",
         "",
-        "Die Werte 'BestTaskDistance' stammen von dhv-xc.de und beschreiben die",
-        "beste erzielte Streckenleistung eines Fluges (z. B. ein Dreieck), NICHT",
-        "die tatsaechlich zurueckgelegte Flugstrecke. Die Summe ueber alle Fluege",
-        "ist daher keine Gesamtflugstrecke, sondern die Summe aller Einzelbestleistungen.",
-        "",
-        "Enthaltene Dateien",
-        "------------------",
-        "",
-        "README.txt",
-        "  Diese Datei.",
-        "",
-        "export_meta.json",
-        "  Uebersichtsstatistiken zu diesem Export (Anzahl Fluege, Zeitraum,",
-        "  Gesamtflugzeit, Summe der BestTaskDistance-Werte, Hinweis zur Validierung).",
-        "  Kann mit jedem Texteditor oder JSON-Viewer geoeffnet werden.",
-        "",
-        "flights.csv",
-        "  Tabelle mit Details zu jedem Flug: Datum, Start-/Landeplatz, Schirm,",
-        "  Flugdauer, BestTaskDistance in km, Name der IGC-Datei im Archiv und der",
-        "  strukturelle Validierungsstatus. Kann mit Excel, LibreOffice oder",
-        "  einem Texteditor geoeffnet werden.",
-        "",
-        "*.igc",
-        "  Eine IGC-Datei pro Flug. Kann z. B. mit Gleitschirm-Analyse-Software",
-        "  (z. B. XCTrack, SeeYou, XCSoar) oder Online-Plattformen (z. B.",
-        "  dhv-xc.de, XContest, SkyLines) importiert oder direkt angezeigt werden.",
-        "",
-        "Hinweise zur Validierung",
-        "------------------------",
-        "",
-        "Der Validierungsstatus in flights.csv ist rein strukturell geprueft",
-        "(Vorhandensein der A-, B- und G-Records, Dateigroesse, Lesbarkeit).",
-        "Eine kryptographische Pruefung der G-Record-Signatur findet NICHT statt.",
-        "",
-        "Herkunft und Verwendung",
-        "-----------------------",
-        "",
-        "Die Fluege und IGC-Dateien stammen aus dhv-xc.de und koennen fuer",
-        "Nachweise (z. B. Hoehenflug-Nachweis, Vereinsstatistik) verwendet werden.",
+        "Der Validierungsstatus ist rein strukturell geprueft (A-/B-/G-Records,",
+        "Lesbarkeit). Eine kryptographische G-Record-Pruefung findet NICHT statt.",
         "",
         f"Bei Fragen zum Archiv wende dich bitte an {pilot_name}.",
         "",
