@@ -16,20 +16,37 @@ Ein schlankes Python-CLI-Tool zum Herunterladen von Paragliding-Flugtracks im IG
 igc-extractor/
 ├── data/
 │   ├── igc/                  # Heruntergeladene .igc-Dateien
-│   ├── processed/            # Generierte JSONL/CSV-Daten
-│   ├── logs/                 # Laufzeit-Logs
-│   └── igc_extractor.db      # SQLite-Statusdatenbank (Resume / Idempotenz)
+│   ├── processed/            # Generierte JSONL-Daten (z. B. flights.jsonl)
+│   ├── export/               # Statische JSON-Exports
+│   ├── logs/                 # Laufzeit-Logs und Summaries
+│   ├── igc_extractor.db    # SQLite-Statusdatenbank des Downloaders (Resume / Idempotenz)
+│   ├── igc-extractor.db      # SQLite-Analysedatenbank des Importers
+│   └── schema.sql            # SQLite-Schema für den Import
 ├── docs/
 │   ├── decisions/            # Architecture Decision Records (ADRs)
-│   └── notes/                # Research notes (e.g. dhv-xc API analysis)
+│   ├── notes/                # Research notes (API, Pipeline, Kanban)
+│   ├── runbooks/             # Schritt-für-Schritt-Anleitungen
+│   ├── ROADMAP.md            # Geplante Releases und Features
+│   └── TODO.md               # Lebendige Aufgabenliste
 ├── scripts/
-│   ├── igc_extractor.py    # Einstiegspunkt der CLI
-│   └── list_flights.py     # Flight list extraction → JSONL
+│   ├── igc_extractor.py      # Orchestrierung: list → download → import
+│   ├── list_flights.py       # Flugliste auslesen → JSONL
+│   ├── download_igc.py       # IGC-Dateien herunterladen
+│   ├── dhv_xc_client.py      # Authentifizierter HTTP-Client
+│   └── import_flights.py     # Import + Validierung in SQLite
 ├── .env.example              # Beispiel-Konfiguration (keine echten Werte)
 ├── .gitignore                # Ausschluss von .env, venv, Logs, DBs, IGCs …
 ├── requirements.txt          # Python-Abhängigkeiten
+├── CHANGELOG.md              # Versionshistorie
+├── AGENT_BEHAVIOR_NOTES.md   # Regeln für Agent-Sessions
 └── README.md                 # Diese Datei
 ```
+
+> **Hinweis:** Es gibt zwei SQLite-Datenbanken mit unterschiedlichen Zwecken:
+> - `data/igc_extractor.db` wird vom Downloader als Resume-/Status-DB verwendet.
+> - `data/igc-extractor.db` ist das Ziel von `import_flights.py` für Analysen/Exporte.
+>
+> Eine spätere Version kann die beiden Datenbanken zusammenführen (siehe `docs/ROADMAP.md`).
 
 ## Installation
 
@@ -191,6 +208,7 @@ Die wichtigsten Dokumentationsbereiche sind:
 - [`docs/notes/`](./docs/notes/) — Session-Learnings, API-Beobachtungen, Pipeline-Notizen
 - [`docs/runbooks/`](./docs/runbooks/) — Schritt-für-Schritt-Anleitungen, z. B. IGC-Download
 - [`docs/TODO.md`](./docs/TODO.md) — Lebendige Aufgabenliste
+- [`docs/ROADMAP.md`](./docs/ROADMAP.md) — Geplante Releases und kommende Features
 
 Wichtige Regeln auf einen Blick:
 
@@ -200,7 +218,12 @@ Wichtige Regeln auf einen Blick:
 4. `docs/TODO.md` lebendig halten.
 5. Agent-Änderungen nur im Worktree; Merge passiert durch Kanban-Workflow.
 6. Lange Tasks nicht im Agent blockieren; stattdessen Hintergrundprozesse + Resume/Logs.
-7. Tests grün vor Commit (wenn Tests existieren).
+7. Tests grün vor Commit (wenn Tests existieren — aktuell gibt es noch kein `tests/`-Verzeichnis, siehe `AGENT_BEHAVIOR_NOTES.md`).
 8. Kanban-Sidebar-Agent darf Worktree-Ergebnisse ins Haupt-Repo übernehmen, wenn Auto-Review fehlschlägt.
 9. Auto-Review für Datei-erstellende Tasks: `--auto-review-enabled true --auto-review-mode commit` setzen.
 10. Wiederkehrende Muster in `AGENT_BEHAVIOR_NOTES.md` dokumentieren.
+
+## Roadmap
+
+Die geplante Weiterentwicklung ist in [`docs/ROADMAP.md`](./docs/ROADMAP.md) festgehalten.  
+Die nächsten Meilensteine umfassen IGC-Export für Höhenflugnachweise, Kartenvisualisierung, Import aus weiteren Quellen sowie Deduplizierung/Konsistenzprüfung.

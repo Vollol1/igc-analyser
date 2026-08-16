@@ -173,7 +173,7 @@ pkill -f download_igc.py
 
 ## Verwandte Dokumente
 
-- [Agent-Verhaltensregeln](../../../../../../../AGENT_BEHAVIOR_NOTES.md)
-- [Pipeline-Notizen](../pipeline-notes.md)
-- [dhv-xc API-Notizen](../dhv-xc-api.md)
-- [ADR-001: Architecture & Tech Stack](../../decisions/ADR-001-architecture-techstack.md)
+- [Agent-Verhaltensregeln](../../AGENT_BEHAVIOR_NOTES.md)
+- [Pipeline-Notizen](../notes/pipeline-notes.md)
+- [dhv-xc API-Notizen](../notes/dhv-xc-api.md)
+- [ADR-001: Architecture & Tech Stack](../decisions/ADR-001-architecture-techstack.md)

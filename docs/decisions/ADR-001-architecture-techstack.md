@@ -28,12 +28,19 @@ igc-extractor soll Paragliding-Flugtracks (`.igc`) von dhv-xc.de herunterladen u
 - **Resume**: ein abgebrochener Lauf kann fortgesetzt werden; erfolgreiche Schritte werden übersprungen.
 - CLI-first: primäres Interface ist ein Python-Skript unter `scripts/igc_extractor.py`.
 
+### Datenbanken
+
+- **Zwei getrennte SQLite-DBs** (aktuell):
+  - `data/igc_extractor.db` – Zustandsdatenbank des Downloaders für Resume/Idempotenz.
+  - `data/igc-extractor.db` – Analysedatenbank des Importers mit Flugmetadaten, Hashes und Validierungsstatus.
+- Langfristig ist eine Konsolidierung in eine einzige Datenbank vorgesehen; der Migrationspfad wird in einem Folge-ADR beschrieben (siehe `docs/ROADMAP.md` v0.2.0).
+
 ### Secrets & Credentials
 
 - Credentials (dhv-xc.de Benutzername/Passwort) werden ausschließlich über Umgebungsvariablen oder eine lokale `.env`-Datei bezogen.
 - `.env` wird in `.gitignore` ignoriert und niemals committet.
 - Es werden keine Secrets im Quellcode, in Log-Dateien oder im State gespeichert.
-- Details und Notfall-Handling bei einem versehentlichen Leak folgen dem Vorbild von [gag-atlas ADR-007: Secrets-Management](/home/florian/github.com/Vollol1/gag-atlas/docs/decisions/ADR-007-secrets-management.md).
+- Details und Notfall-Handling bei einem versehentlichen Leak folgen dem Vorbild von [gag-atlas ADR-007: Secrets-Management](https://github.com/Vollol1/gag-atlas/blob/main/docs/decisions/ADR-007-secrets-management.md).
 
 ### Optional / later
 
@@ -68,8 +75,9 @@ Das Projekt folgt einer dokumentationsgetriebenen Arbeitsweise. Für jede Agent-
 
 ## References
 
-- [gag-atlas ADR-007: Secrets-Management](/home/florian/github.com/Vollol1/gag-atlas/docs/decisions/ADR-007-secrets-management.md)
+- [gag-atlas ADR-007: Secrets-Management](https://github.com/Vollol1/gag-atlas/blob/main/docs/decisions/ADR-007-secrets-management.md)
 - [AGENT_BEHAVIOR_NOTES.md](../../AGENT_BEHAVIOR_NOTES.md)
+- [`docs/ROADMAP.md`](../ROADMAP.md)
 - [Python requests](https://requests.readthedocs.io/)
 - [BeautifulSoup 4](https://www.crummy.com/software/BeautifulSoup/)
 - [lxml parser](https://lxml.de/)

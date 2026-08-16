@@ -52,7 +52,9 @@ Lebendiges Notizbuch für Erkenntnisse, Probleme und offene Fragen rund um den D
 Die Pipeline ist so konzipiert, dass unterbrochene Läufe fortgesetzt werden können.
 
 - `scripts/igc_extractor.py --resume` überspringt bereits vorhandene `.igc`-Dateien in `data/igc/`.
-- `data/igc_extractor.db` speichert pro Flug Status (`downloaded`, `failed`, `missing`).
+- `data/igc_extractor.db` speichert pro Flug Status (`downloaded`, `failed`, `missing`) für den Downloader.
+- `data/igc-extractor.db` ist das Ziel von `import_flights.py` mit Flugmetadaten, Hashes und Validierungsstatus.
+- Langfristig sollen die beiden Datenbanken konsolidiert werden (siehe `docs/ROADMAP.md` v0.2.0).
 - `data/processed/flights.jsonl` wird bei jedem `list_flights.py`-Lauf idempotent neu geschrieben.
 
 ### Offene Fragen

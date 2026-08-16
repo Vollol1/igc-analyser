@@ -77,17 +77,21 @@ Keep notes concise, timestamped, and reproducible.
 
 ---
 
-## 7. Tests must pass before commit
+## 7. Tests must pass before commit (when tests exist)
 
-**g) Before every commit, project tests must be green:**
+**g) Before every commit, project tests must be green — but the project currently has no `tests/` directory yet:**
 
 ```bash
+# Currently there is no tests/ folder.
+# As soon as tests exist, run:
 pytest tests/
 ```
 
 - Run the full test suite in the project venv.
 - Fix failures before committing.
 - If a failing test is out of scope, explicitly state why and do not silently skip it.
+- **Known TODO:** create a `tests/` suite (see `docs/TODO.md` and `docs/ROADMAP.md` v0.2.0).  
+  Until then, at least run `python -m py_compile` on changed scripts and verify `--help` still works.
 
 ---
 
