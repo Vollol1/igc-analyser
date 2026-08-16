@@ -15,36 +15,53 @@ Die Roadmap wird bei jedem größeren Feature oder Release aktualisiert.
 
 ---
 
-## [Unreleased]
+## [Unreleased] / Nächstes Release
 
-Dieser Abschnitt sammelt Änderungen, die noch keinem Release zugeordnet sind, aber bereits in Arbeit oder fest eingeplant.
+Dieser Abschnitt sammelt Änderungen, die noch keinem Release zugeordnet sind, aber bereits fest eingeplant oder in Arbeit.
 
-- Dokumentations-Aufräumarbeiten und Konsolidierung.
-- Bekannte Inkonsistenzen dokumentieren (z. B. zwei SQLite-DB-Namen, fehlende Testsuite).
-
----
-
-## v0.2.0 — Foundation & Robustheit
-
-**Ziel:** Die bestehende Pipeline stabilisieren, dokumentieren und technische Schulden abbauen, bevor neue Features aufgesetzt werden.
-
-### Geplante Änderungen
-
-- [-] Testsuite aufbauen (`tests/`)
+- Testsuite aufbauen (`tests/`)
   - Unit-Tests für IGC-Validierung, Dateinamensgenerierung, Hash-Bildung.
   - Integrationstest mit lokalen Mock-IGC-Dateien ohne Netzwerk.
   - CI-Grundgerüst für wiederkehrende Testläufe.
-- [-] Resume-Logik für fehlgeschlagene Downloads verbessern
+- Resume-Logik für fehlgeschlagene Downloads verbessern
   - `attempts`-Zähler in der Downloader-State-DB (`data/igc_extractor.db`).
   - Erkennung dauerhaft fehlgeschlagener Flüge, statt endloser Wiederholung.
-- [-] SQLite-Datenbanken konsolidieren (Vorbereitung)
+- SQLite-Datenbanken konsolidieren (Vorbereitung)
   - Dokumentieren, warum es aktuell zwei Datenbanken gibt (`igc_extractor.db` vs. `igc-extractor.db`).
   - ADR erarbeiten, der den Migrationspfad zu einer einzigen DB beschreibt.
+- `LandingLocation` aus der DHV-XC Detailseite scrapen und im Export berücksichtigen.
+- Validierungs- und Ausreißer-Checks für Flugdaten (Distanz, Flugzeit, Höhenmeter).
+
+---
+
+## v0.2.0 — IGC-Export & Dokumentation (released 2026-08-16)
+
+**Ziel:** Die bestehende Pipeline um einen reproduzierbaren, lokalen IGC-Export erweitern, der für Vereins-/Lizenz-Zwecke (z. B. Höhenflug-Nachweis) genutzt werden kann. Zusätzlich wird die Projekt-Dokumentation konsolidiert.
+
+### Released Changes
+
+- [x] IGC-Export-Modul (`scripts/export_igc_zip.py`)
+  - ZIP/tar.gz-Archive mit sprechenden IGC-Dateinamen.
+  - `README.txt` Deckblatt mit Piloten-/Absendernamen.
+  - `export_meta.json` Übersichtsstatistik (inkl. korrigierter Distanz-Felder).
+  - `flights.csv` detaillierte Flugtabelle inkl. Validierungsstatus.
+  - `flight_summary.pdf` strukturierte PDF-Zusammenfassung via `reportlab`.
+- [x] Korrektur der Meta-Distanz-Felder in `export_meta.json`.
+- [x] `LandingLocation` aus dem Export entfernt (wird zukünftig über Detailseite gescraped).
+- [x] Dokumentationskonsolidierung (`README.md`, `ROADMAP.md`, `TODO.md`, Agent-Notes, Runbooks).
+
+### Nicht in v0.2.0 umgesetzt (verschoben)
+
+Die folgenden technischen Schulden-/Robustheitsthemen aus der ursprünglichen v0.2.0-Planung wurden nicht umgesetzt und sind im Abschnitt [Unreleased] / Nächstes Release nachzuvollziehen:
+
+- Testsuite aufbauen.
+- Resume-Logik für fehlgeschlagene Downloads verbessern.
+- SQLite-Datenbanken konsolidieren.
 
 ### Motivation
 
 v0.1.0 hat bewiesen, dass die Kernpipeline funktioniert (288 eigene Flüge, 287/288 valid).
-Bevor neue Features hinzukommen, braucht das Projekt eine Testbasis, klarere Zustandsverwaltung und eine konsistentere Datenbankstruktur.
+v0.2.0 liefert nun einen praxistauglichen Export inkl. menschen- und maschinenlesbarer Begleitdateien.
 
 ---
 

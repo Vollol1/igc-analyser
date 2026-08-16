@@ -150,15 +150,22 @@ werden:
   /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_igc_zip.py
 ```
 
-Das Archiv landet unter `data/export/igc_export_<run_id>.zip` und enthält:
+Das Archiv landet unter `data/export/igc_export_<run_id>.zip` (bzw. `*.tar.gz`) und enthält:
 
-- `README.txt` – Deckblatt mit Piloten-/Absendername, Erstellungsdatum,
-  Anzahl Flüge und Zeitraum.
-- `export_meta.json` – Übersicht (Anzahl Flüge, Gesamtflugzeit, Gesamtdistanz,
-  Zeitraum, Startplätze, Erstellungsdatum, Validierungshinweis).
+- `README.txt` – Deckblatt mit Piloten-/Absendername (Parameter `--pilot-name`
+  / `--sender`), Erstellungsdatum, Anzahl Flüge, Zeitraum, Startorte und
+  Hinweis zur strukturellen IGC-Validierung.
+- `export_meta.json` – Übersicht (Anzahl Flüge, IGC-Dateien, Gesamtflugzeit,
+  `sum_best_task_distance_km`, `best_single_flight_distance_km`,
+  `best_single_flight`, Zeitraum, Startplätze, Erstellungsdatum,
+  Validierungshinweis).
 - `flights.csv` – Detaillierte Flugtabelle inkl. `IDFlight`, `FlightDate`,
-  `TakeoffLocation`, `Glider`, `FlightDuration`, `BestTaskDistance`,
-  `IgcFilenameInArchive` und `ValidStatus` (sofern in der Datenbank vorhanden).
+  `TakeoffLocation`, `Glider`, `FlightDuration`, `BestTaskDistanceKm`,
+  `IgcFilenameInArchive`, `ValidStatus` und `OriginalIgcFilename` (sofern in
+  der Datenbank vorhanden).
+- `flight_summary.pdf` – Strukturierte deutsche Zusammenfassung mit Deckblatt,
+  kompakter Meta-Tabelle, Validierungshinweis und tabellarischer Flugliste im
+  Querformat; generiert mit `reportlab>=4.0.0` (siehe ADR-002).
 - `<IDFlight>_<FlightDate>_<TakeoffLocation>.igc` – Die IGC-Dateien mit
   sprechenden Dateinamen.
 

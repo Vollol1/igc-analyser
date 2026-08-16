@@ -18,16 +18,27 @@ _(keine)_
 
 ## Kurzfristig geplant
 
-- [ ] Resume-Logik für fehlgeschlagene Downloads verbessern
-  - `attempts`-Zähler in der Downloader-State-DB (`data/igc_extractor.db`) führen.
-  - Dauerhaft fehlgeschlagene Flüge erkennen und ausgeben, statt sie endlos zu wiederholen.
+_(verschoben aus dem ursprünglichen v0.2.0-Scope; siehe [ROADMAP.md](./ROADMAP.md) [Unreleased] / Nächstes Release)_
+
 - [ ] Testsuite aufbauen (`tests/`)
   - Unit-Tests für IGC-Validierung, Dateinamensgenerierung und Hash-Bildung.
   - Integrationstest mit lokalen Mock-IGC-Dateien (kein Netzwerkaufruf).
   - CI-fähig machen, sobald mindestens eine grundlegende Testsuite existiert.
+- [ ] Resume-Logik für fehlgeschlagene Downloads verbessern
+  - `attempts`-Zähler in der Downloader-State-DB (`data/igc_extractor.db`) führen.
+  - Dauerhaft fehlgeschlagene Flüge erkennen und ausgeben, statt sie endlos zu wiederholen.
 - [ ] Zwei SQLite-Datenbanken konsolidieren
   - Aktuell: `data/igc_extractor.db` (Downloader-Resume) und `data/igc-extractor.db` (Import/Analyse).
   - Langfristig eine einzige DB anstreben; Schritte und Migration in ADR festhalten.
+- [ ] `LandingLocation` aus DHV-XC Detailseite scrapen und in Export aufnehmen
+  - Die Flugliste (`/flights?mine=1&incpriv=1`) liefert `LandingLocation` nicht.
+  - Auf der Detailseite (`/flight/<IDFlight>`) ist `LandingLocation` im
+    JavaScript-Block `kers.app.fli.handler.init(...)` verfügbar.
+  - Erfordert einen zusätzlichen HTTP-Request pro Flug sowie Retry-/Rate-Limit-Logik.
+- [ ] Validierungs- und Ausreißer-Checks für Flugdaten
+  - Längster Flug / maximale Distanz können laut Benutzer-Feedback nicht stimmen – Track hat Fehler.
+  - Plausibilitätsprüfung für Distanz, Flugzeit und Höhenmeter einführen.
+  - Auffällige Flüge in `flights.csv`/Datenbank markieren oder in separates Protokoll ausgeben.
 
 ## Erledigt
 
@@ -73,13 +84,14 @@ _(keine)_
 ## Mittelfristig geplant
 
 - [ ] Datenqualität weiterhin gelegentlich prüfen (z. B. nach jedem größeren Download).
-- [x] IGC-Export für Höhenflug-Nachweis (v0.3.0, siehe ROADMAP)
+- [x] IGC-Export-Archiv für Höhenflug-Nachweis (v0.2.0 — Foundation für v0.3.0)
   - `scripts/export_igc_zip.py` erstellt ein ZIP/tar.gz-Archiv mit `README.txt`, `export_meta.json`, `flights.csv`, `flight_summary.pdf` und den IGC-Dateien.
   - `README.txt` enthält den Piloten-/Absendernamen (Parameter `--pilot-name` / `--sender`).
   - `flight_summary.pdf` enthält ein strukturiertes Deckblatt (Pilot, Zeitraum, Anzahl Flüge, IGC-Dateien, Gesamtflugzeit, XC-Distanz, bester Flug, Startorte, Erstellungsdatum, Hinweis zur Validierung) sowie eine tabellarische Übersicht aller Flüge.
   - PDF-Generierung über `reportlab>=4.0.0` (reiner Python, keine externen System-Dependencies); siehe [ADR-002](../decisions/ADR-002-pdf-reporting-reportlab.md).
   - Generierte Archive stehen in `.gitignore`.
-  - Siehe auch [`docs/ROADMAP.md`](./ROADMAP.md) und [`docs/runbooks/export-igc.md`](../runbooks/export-igc.md).
+  - Die vollständige Höhenflug-Nachweis-Funktion (Filter nach Mindesthöhe, dedizierte Views) bleibt Ziel von v0.3.0; siehe [`docs/ROADMAP.md`](./ROADMAP.md).
+  - Siehe auch [`docs/runbooks/export-igc.md`](../runbooks/export-igc.md).
 - [ ] `LandingLocation` aus DHV-XC Detailseite scrapen und in Export aufnehmen
   - Die Flugliste (`/flights?mine=1&incpriv=1`) liefert `LandingLocation` nicht.
   - Auf der Detailseite (`/flight/<IDFlight>`) ist `LandingLocation` im

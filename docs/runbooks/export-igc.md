@@ -45,7 +45,7 @@ Eingaben:
 
 Ausgaben:
 
-- `data/export/igc_export_<run_id>.zip` – Archiv mit `README.txt`, `export_meta.json`, `flights.csv`, `flight_summary.pdf` und allen IGC-Dateien.
+- `data/export/igc_export_<run_id>.zip` (bzw. `*.tar.gz` bei `--format tar.gz`) – Archiv mit `README.txt`, `export_meta.json`, `flights.csv`, `flight_summary.pdf` und allen IGC-Dateien.
 - Log unter `data/logs/export_igc_zip_<run_id>.log`.
 - Summary unter `data/logs/export_igc_zip_summary_<run_id>.json`.
 

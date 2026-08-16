@@ -7,21 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-08-16
+
 ### Added
+- `scripts/export_igc_zip.py` — export downloaded IGC files as structured `*.zip` or `*.tar.gz` archives under `data/export/`:
+  - `README.txt` cover sheet with pilot/sender name (default `Florian Knab`, configurable via `--pilot-name` / `--sender`), archive contents, validation notes and creation date.
+  - `export_meta.json` archive overview: total flights, IGC files, summed flight duration, `sum_best_task_distance_km`, `best_single_flight_distance_km`, `best_single_flight` (ID, date, takeoff, glider), period, unique takeoff locations and generation timestamp.
+  - `flights.csv` detailed flight table including `IDFlight`, `FlightDate`, `TakeoffLocation`, `Glider`, `FlightDuration`, `BestTaskDistanceKm`, `IgcFilenameInArchive`, `ValidStatus` and `OriginalIgcFilename`.
+  - `flight_summary.pdf` structured German flight summary (cover page, compact meta table, validation note and landscape flight table) generated with `reportlab>=4.0.0`; see ADR-002.
+  - IGC files inside the archive use speaking names: `<IDFlight>_<FlightDate>_<TakeoffLocation>.igc`.
+  - Run log and JSON summary are written under `data/logs/`.
+- `docs/decisions/ADR-002-pdf-reporting-reportlab.md` documenting the PDF-generation decision.
 - `docs/ROADMAP.md` with planned releases v0.2.0–v0.5.0.
-- `scripts/export_igc_zip.py` now writes a `README.txt` cover sheet into every
-  archive, including the pilot/sender name (default: `Florian Knab`,
-  configurable via `--pilot-name` / `--sender`). Generated `*.zip` and `*.tar.gz`
-  archives under `data/export/` are ignored by Git.
 
 ### Changed
-- Consolidated and cleaned up project documentation (`README.md`, `docs/TODO.md`, agent notes, pipeline notes).
+- Consolidated and cleaned up project documentation (`README.md`, `docs/TODO.md`, agent notes, pipeline notes, runbooks).
 - Documented known inconsistencies such as the two SQLite database names and the missing `tests/` folder.
-- Corrected misleading meta distance fields in `export_meta.json`:
+- Corrected the meta distance fields in `export_meta.json`:
   - Renamed `total_best_task_distance_km` to `sum_best_task_distance_km` to clarify it is the sum of all Best-Task-Distances.
   - Added `best_single_flight_distance_km` (max Best-Task-Distance of a single flight).
-  - Added `best_single_flight` with `IDFlight`, `FlightDate` and `TakeoffLocation` of the best flight.
-  - Updated README.txt and `docs/runbooks/export-igc.md` accordingly.
+  - Added `best_single_flight` with `IDFlight`, `FlightDate`, `TakeoffLocation` and `Glider` of the best flight.
+  - Updated `README.txt` and `docs/runbooks/export-igc.md` accordingly.
+
+### Removed
+- `LandingLocation` from the CSV / archive export. The list view used by `list_flights.py` does not provide this field; future releases may scrape it from individual flight detail pages.
 
 ## [0.1.0] - 2026-07-29
 
@@ -41,4 +50,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 288 IGC files downloaded to `data/igc/`.
 - 287 valid, 1 invalid (missing G-Record), 0 missing.
 
+[0.2.0]: https://github.com/Vollol1/igc-extractor/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Vollol1/igc-extractor/releases/tag/v0.1.0
