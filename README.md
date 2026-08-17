@@ -34,7 +34,8 @@ igc-extractor/
 │   ├── download_igc.py       # IGC-Dateien herunterladen
 │   ├── dhv_xc_client.py      # Authentifizierter HTTP-Client
 │   ├── import_flights.py     # Import + Validierung in SQLite
-│   └── export_igc_zip.py     # Lokale IGC-Dateien als ZIP/TAR.GZ exportieren
+│   ├── export_igc_zip.py     # Lokale IGC-Dateien als ZIP/TAR.GZ exportieren
+│   └── export_flight_map.py  # Interaktive Leaflet-Karte erzeugen
 ├── .env.example              # Beispiel-Konfiguration (keine echten Werte)
 ├── .gitignore                # Ausschluss von .env, venv, Logs, DBs, IGCs …
 ├── requirements.txt          # Python-Abhängigkeiten
@@ -182,6 +183,23 @@ Optionale Parameter:
 
 Details und eine Schritt-für-Schritt-Anleitung stehen im
 [IGC-Export-Runbook](docs/runbooks/export-igc.md).
+
+### Interaktive Karte exportieren
+
+Nachdem Flugmetadaten und IGC-Dateien vorliegen, kannst du eine interaktive
+Leaflet-Karte mit allen Tracks, Startplatz-Markern, Popups und einem
+Statistik-Panel erzeugen:
+
+```bash
+/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
+  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_flight_map.py
+```
+
+Das erzeugt `data/export/flights_map_<run_id>.html` mit OpenStreetMap-Hintergrund.
+Über das Layer-Control lässt sich zwischen den Gruppierungen Kategorie
+(Default: Lokal / XC / Höhenflug), Startplatz, Flugjahr und Gleitschirm
+umschalten. Details und weitere Aufrufbeispiele stehen im
+[Karten-Export-Runbook](docs/runbooks/export-flight-map.md).
 
 ## Credentials / Secrets
 

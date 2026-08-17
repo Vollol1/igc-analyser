@@ -56,10 +56,10 @@ _(verschoben aus dem ursprünglichen v0.2.0-Scope; siehe [ROADMAP.md](./ROADMAP.
   - Längster Flug / maximale Distanz können laut Benutzer-Feedback nicht stimmen – Track hat Fehler.
   - Plausibilitätsprüfung für Distanz, Flugzeit und Höhenmeter einführen.
   - Auffällige Flüge in `flights.csv`/Datenbank markieren oder in separates Protokoll ausgeben.
-- [-] Kartenfeature: Schritte für `scripts/export_flight_map.py` (v0.3.0)
+- [x] Kartenfeature: Schritte für `scripts/export_flight_map.py` (v0.3.0)
   - Utilities extrahieren (wiederverwendbarer B-Record-Parser, ggf. gemeinsame Flug-Metadaten-Leser).
-  - Basis-Karte mit Kategorie-Layer (Lokal / XC / Höhenflug).
-  - Zusätzliche Gruppierungen (Startplatz, Flugjahr, Gleitschirm).
+  - [x] Basis-Karte mit Kategorie-Layer (Lokal / XC / Höhenflug).
+  - [x] Zusätzliche Gruppierungen (Startplatz, Flugjahr, Gleitschirm).
   - SVG/PNG-Export der Karte (optional, v0.4.0).
   - 3D-Ansicht der Tracks (optional, später).
 
