@@ -87,8 +87,48 @@ Die Pipeline ist so konzipiert, dass unterbrochene Läufe fortgesetzt werden kö
 
 ---
 
+## Datenbank-Incident (2026-08-17): `flights`/`flight_stats` in `data/igc_extractor.db`
+
+### Was passiert ist
+
+- Ein Lauf von `scripts/igc_extractor.py` hat an `scripts/import_flights.py` versehentlich `--db data/igc_extractor.db` übergeben, statt des vorgesehenen Analyse-DB-Pfades `data/igc-extractor.db`.
+- Dadurch wurden die Importtabellen `flights` und `flight_stats` in der eigentlichen Downloader-State-DB angelegt.
+- Zustand vor der Bereinigung:
+  - `data/igc_extractor.db` enthielt `flights` (306 Zeilen: 199 valid, 107 invalid) und `flight_stats` (2 Zeilen).
+  - `data/igc-extractor.db` enthielt bereits `flights` (288 Zeilen: 287 valid, 1 invalid) und `flight_stats` (1 Zeile).
+
+### Analyse
+
+- 288 Flug-IDs waren in beiden Datenbanken vorhanden.
+- Die 18 zusätzlichen IDs in `data/igc_extractor.db` waren allesamt als `valid` markiert und in `data/processed/flights.jsonl` vorhanden, hatten aber aus einem früheren Lauf keine Einträge in der Analyse-DB.
+- Für die 288 gemeinsamen IDs wies `data/igc_extractor.db` 106 als `invalid` aus, während `data/igc-extractor.db` sie als `valid` kennzeichnete (mit korrektem Hash). Der Grund war ein früheres Import-Skript, das G-Records zu streng geprüft hat; die Analyse-DB enthält den aktuellen, korrekten Status.
+- `flight_stats` der State-DB war ein Duplikat/Verwässerung der Analyse-Stats.
+
+### Entscheidung
+
+- Die Tabellen in `data/igc_extractor.db` konnten **nicht** einfach gedroppt werden, ohne Daten zu verlieren, weil 18 vollständige, validierte Flugzeilen ausschließlich dort standen.
+- **Migrationsstrategie**: Nur die 18 Analyse-DB-fremden Flugzeilen sowie die dort fehlende `flight_stats`-Zeile (`run_id=20260817_162404`) wurden in `data/igc-extractor.db` übertragen (`INSERT ... ON CONFLICT(IDFlight) DO UPDATE`). Konflikte bei den 288 gemeinsamen IDs wurden zugunsten der bereits korrekten Analyse-DB aufgelöst.
+- Anschließend wurden die importierten Tabellen `flights` und `flight_stats` aus `data/igc_extractor.db` entfernt (`DROP TABLE`), damit die State-DB wieder für ihren vorgesehenen Zweck (Downloader-Resume/Idempotenz) frei ist.
+
+### Durchgeführte Bereinigung
+
+1. 18 ausschließlich in `data/igc_extractor.db` vorhandene Flugzeilen nach `data/igc-extractor.db` migriert.
+2. Fehlende `flight_stats`-Zeile `20260817_162404` nach `data/igc-extractor.db` migriert.
+3. `DROP TABLE flights` und `DROP TABLE flight_stats` in `data/igc_extractor.db` ausgeführt.
+4. `PRAGMA integrity_check` auf `data/igc-extractor.db` erfolgreich ausgeführt.
+
+### Zustand nach der Bereinigung
+
+- `data/igc_extractor.db`: enthält nur noch `sqlite_sequence`, keine `flights`-Tabelle mehr.
+- `data/igc-extractor.db`: 306 Flugzeilen (305 valid, 1 invalid), vollständige `flight_stats`.
+- Keine IGC-Dateien gelöscht; Analyse-DB unversehrt.
+- Der Fehler, der den falschen DB-Pfad verursacht hat, wurde bereits in `scripts/igc_extractor.py` korrigiert (siehe CHANGELOG.md `[Unreleased]`).
+
+---
+
 ## Changelog
 
+- **2026-08-17**: Datenbank-Incident bereinigt: `flights`/`flight_stats` aus `data/igc_extractor.db` entfernt und fehlende Daten nach `data/igc-extractor.db` migriert.
 - **2026-07-29**: Echter End-to-End-Lauf mit 288 eigenen Flügen durchgeführt.
   - Download-Strategie: `--rate-limit 2.0 --batch-size 40 --batch-pause 30`.
   - Ergebnis: 288/288 IGC-Dateien heruntergeladen, 287/288 valid, 1 invalid (Flug 2234459 ohne G-Record).
