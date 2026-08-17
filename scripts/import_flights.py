@@ -17,7 +17,6 @@ corrupt, empty, truncated or otherwise obviously broken IGC files.
 """
 
 import argparse
-import hashlib
 import json
 import logging
 import os
@@ -26,8 +25,19 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
+from common import compute_hashes, read_jsonl, to_float, to_int
+
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+
+def _read_jsonl_or_raise(path: Path) -> list[dict[str, Any]]:
+    """Read JSONL and raise FileNotFoundError when the file is missing."""
+    if not path.exists():
+        raise FileNotFoundError(f"Flights JSONL not found: {path}")
+    return read_jsonl(path)
+
+
 DEFAULT_FLIGHTS_JSONL = PROJECT_ROOT / "data" / "processed" / "flights.jsonl"
 DEFAULT_IGC_DIR = PROJECT_ROOT / "data" / "igc"
 DEFAULT_DB = PROJECT_ROOT / "data" / "igc-extractor.db"
@@ -53,28 +63,6 @@ def setup_logging(run_id: str, log_dir: Path) -> Path:
 
 def generate_run_id() -> str:
     return datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-
-
-def read_jsonl(path: Path) -> list[dict[str, Any]]:
-    if not path.exists():
-        raise FileNotFoundError(f"Flights JSONL not found: {path}")
-    records: list[dict[str, Any]] = []
-    with path.open("r", encoding="utf-8") as fh:
-        for line_no, raw in enumerate(fh, start=1):
-            raw = raw.strip()
-            if not raw:
-                continue
-            try:
-                records.append(json.loads(raw))
-            except json.JSONDecodeError as exc:
-                logging.warning("Skipping malformed JSONL line %d: %s", line_no, exc)
-    return records
-
-
-def compute_hashes(data: bytes) -> tuple[str, str]:
-    md5 = hashlib.md5(data).hexdigest()
-    sha256 = hashlib.sha256(data).hexdigest()
-    return md5, sha256
 
 
 def init_database(db_path: Path, schema_path: Path) -> None:
@@ -129,8 +117,8 @@ def upsert_flight(
                 flight.get("FlightDate"),
                 flight.get("TakeoffLocation"),
                 flight.get("Glider"),
-                _to_float(flight.get("BestTaskDistance")),
-                _to_int(flight.get("FlightDuration")),
+                to_float(flight.get("BestTaskDistance")),
+                to_int(flight.get("FlightDuration")),
                 flight.get("IgcFilename"),
                 hash_value,
                 downloaded_at or flight.get("DownloadedAt"),
@@ -236,24 +224,6 @@ def export_overview(export_dir: Path, run_id: str, stats: dict[str, Any]) -> Pat
     return export_path
 
 
-def _to_float(value: Any) -> Optional[float]:
-    if value is None or value == "":
-        return None
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return None
-
-
-def _to_int(value: Any) -> Optional[int]:
-    if value is None or value == "":
-        return None
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return None
-
-
 def _parse_args(args: Optional[list[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="import-flights",
@@ -314,7 +284,7 @@ def main(args: Optional[list[str]] = None) -> int:
         init_database(parsed.db, parsed.schema)
         logging.info("Database initialized: %s", parsed.db)
 
-        flights = read_jsonl(parsed.flights_jsonl)
+        flights = _read_jsonl_or_raise(parsed.flights_jsonl)
         total = len(flights)
         logging.info("Loaded %d flight records from %s", total, parsed.flights_jsonl)
 

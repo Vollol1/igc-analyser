@@ -14,9 +14,14 @@ Langfristige Releases und Feature-Zuordnungen sind in [`docs/ROADMAP.md`](./ROAD
 
 ## Aktuell in Arbeit
 
-- [-] Kartenfeature vorbereiten/umsetzen
+- [x] Kartenfeature vorbereiten/umsetzen — Teil 1 erledigt
   - Anforderungen dokumentiert in [`docs/notes/flight-map-requirements.md`](./notes/flight-map-requirements.md).
-  - `scripts/export_flight_map.py` anlegen (Leaflet-Karte aus IGC-Flügen).
+  - Gemeinsames Hilfsmodul `scripts/common.py` angelegt.
+  - Duplizierte Hilfsfunktionen aus `list_flights.py`, `download_igc.py`,
+    `igc_extractor.py`, `import_flights.py` und `export_igc_zip.py` in
+    `common.py` extrahiert.
+  - Refactoring dokumentiert in [`docs/notes/common-refactoring.md`](./notes/common-refactoring.md).
+  - Nächster Schritt: `scripts/export_flight_map.py` implementieren.
 
 ## Erledigt
 

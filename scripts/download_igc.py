@@ -15,12 +15,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
+from common import sanitize_filename
 from dhv_xc_client import DhvXcClient, load_dotenv_if_available, resolve_credentials
-
-
-def _sanitize_filename(value: str) -> str:
-    unsafe = set('\\/:*?"<>|')
-    return "".join(c if c not in unsafe and c.isprintable() else "_" for c in value)
 
 
 def _setup_logging(log_file: Path) -> logging.Logger:
@@ -49,9 +45,9 @@ class Flight:
     def igc_filename(self) -> str:
         parts = [str(self.id)]
         if self.date:
-            parts.append(_sanitize_filename(self.date))
+            parts.append(sanitize_filename(self.date))
         if self.takeoff:
-            parts.append(_sanitize_filename(self.takeoff))
+            parts.append(sanitize_filename(self.takeoff))
         if len(parts) > 1:
             return "_".join(parts) + ".igc"
         return f"{self.id}.igc"

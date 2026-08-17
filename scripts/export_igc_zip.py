@@ -34,6 +34,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
+from common import read_jsonl, sanitize_filename, to_float, to_int
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import getSampleStyleSheet
@@ -52,20 +53,6 @@ META_FILENAME = "export_meta.json"
 CSV_FILENAME = "flights.csv"
 README_FILENAME = "README.txt"
 PDF_FILENAME = "flight_summary.pdf"
-
-
-class _FilenameSanitizer:
-    """Re-usable sanitizer matching the conventions in download_igc.py."""
-
-    _UNSAFE = set('\\/:*?"<>|')
-
-    @classmethod
-    def sanitize(cls, value: Optional[str]) -> str:
-        if value is None:
-            return ""
-        return "".join(
-            c if c not in cls._UNSAFE and c.isprintable() else "_" for c in str(value)
-        )
 
 
 @dataclass
@@ -88,9 +75,9 @@ class FlightRecord:
         """Name of the IGC file inside the archive."""
         parts = [str(self.id_flight)]
         if self.flight_date:
-            parts.append(_FilenameSanitizer.sanitize(self.flight_date))
+            parts.append(sanitize_filename(self.flight_date))
         if self.takeoff_location:
-            parts.append(_FilenameSanitizer.sanitize(self.takeoff_location))
+            parts.append(sanitize_filename(self.takeoff_location))
         return "_".join(parts) + ".igc"
 
     def csv_row(self) -> dict[str, Any]:
@@ -123,20 +110,6 @@ def _setup_logging(log_path: Path) -> None:
     )
 
 
-def _read_jsonl(path: Path) -> list[dict[str, Any]]:
-    records: list[dict[str, Any]] = []
-    with path.open("r", encoding="utf-8") as fh:
-        for line_no, raw in enumerate(fh, start=1):
-            raw = raw.strip()
-            if not raw:
-                continue
-            try:
-                records.append(json.loads(raw))
-            except json.JSONDecodeError as exc:
-                logging.warning("Skipping malformed JSONL line %d: %s", line_no, exc)
-    return records
-
-
 def _read_valid_status(db_path: Path) -> dict[int, str]:
     """Return a mapping IDFlight -> Valid status from the SQLite database."""
     status: dict[int, str] = {}
@@ -162,39 +135,6 @@ def _read_valid_status(db_path: Path) -> dict[int, str]:
     return status
 
 
-def _to_int(value: Any) -> Optional[int]:
-    if value is None or value == "":
-        return None
-    try:
-        return int(float(value))
-    except (TypeError, ValueError):
-        return None
-
-
-def _to_float(value: Any) -> Optional[float]:
-    if value is None or value == "":
-        return None
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return None
-
-
-def _parse_flight(record: dict[str, Any]) -> FlightRecord:
-    flight_id = record.get("IDFlight")
-    if flight_id is None:
-        raise ValueError("Flight record has no 'IDFlight' field")
-    return FlightRecord(
-        id_flight=int(flight_id),
-        flight_date=record.get("FlightDate") or None,
-        takeoff_location=record.get("TakeoffLocation") or None,
-        glider=record.get("Glider") or None,
-        flight_duration=_to_int(record.get("FlightDuration")),
-        best_task_distance=_to_float(record.get("BestTaskDistance")),
-        igc_filename=record.get("IgcFilename") or None,
-        igc_url=record.get("IgcUrl") or None,
-        source=record,
-    )
 
 
 def _build_flights(
@@ -205,7 +145,7 @@ def _build_flights(
         raise FileNotFoundError(f"Flights JSONL not found: {jsonl_path}")
 
     valid_status = _read_valid_status(db_path)
-    raw_records = _read_jsonl(jsonl_path)
+    raw_records = read_jsonl(jsonl_path)
     flights: list[FlightRecord] = []
     skipped: list[dict[str, Any]] = []
     for line_no, record in enumerate(raw_records, start=1):
@@ -218,6 +158,23 @@ def _build_flights(
         flight.valid = valid_status.get(flight.id_flight)
         flights.append(flight)
     return flights, skipped
+
+
+def _parse_flight(record: dict[str, Any]) -> FlightRecord:
+    flight_id = record.get("IDFlight")
+    if flight_id is None:
+        raise ValueError("Flight record has no 'IDFlight' field")
+    return FlightRecord(
+        id_flight=int(flight_id),
+        flight_date=record.get("FlightDate") or None,
+        takeoff_location=record.get("TakeoffLocation") or None,
+        glider=record.get("Glider") or None,
+        flight_duration=to_int(record.get("FlightDuration")),
+        best_task_distance=to_float(record.get("BestTaskDistance")),
+        igc_filename=record.get("IgcFilename") or None,
+        igc_url=record.get("IgcUrl") or None,
+        source=record,
+    )
 
 
 def _locate_igc_file(igc_dir: Path, flight: FlightRecord) -> Optional[Path]:

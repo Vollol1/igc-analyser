@@ -14,7 +14,6 @@ the source code or log files.
 from __future__ import annotations
 
 import argparse
-import json
 import logging
 import os
 import sys
@@ -32,6 +31,7 @@ except ImportError:  # pragma: no cover
     def tqdm(iterable, *args, **kwargs):  # type: ignore[no-redef]
         return iterable
 
+from common import project_root, read_jsonl, write_jsonl
 from dhv_xc_client import (
     DEFAULT_BASE_URL,
     DhvXcClient,
@@ -60,10 +60,6 @@ class FlightRecord:
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
-
-
-def _project_root() -> Path:
-    return Path(__file__).resolve().parent.parent
 
 
 def _load_dotenv() -> None:
@@ -125,29 +121,6 @@ def _extract_flight(row: dict[str, Any], base_url: str) -> FlightRecord:
         IgcUrl=urljoin(base_url, IGC_DOWNLOAD_PATH_TEMPLATE.format(id=flight_id)),
         ExtractedAt=now_iso(),
     )
-
-
-def _read_jsonl(path: Path) -> list[dict[str, Any]]:
-    if not path.exists():
-        return []
-    records: list[dict[str, Any]] = []
-    with path.open("r", encoding="utf-8") as fh:
-        for line in fh:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                records.append(json.loads(line))
-            except json.JSONDecodeError:
-                logging.warning("Skipping malformed JSONL line: %s", line[:80])
-    return records
-
-
-def _write_jsonl(path: Path, records: list[FlightRecord]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8", newline="") as fh:
-        for record in records:
-            fh.write(json.dumps(record.to_dict(), ensure_ascii=False) + "\n")
 
 
 def _merge_idempotent(
@@ -233,9 +206,9 @@ def main(args: Optional[list[str]] = None) -> int:
         return 1
 
     run_id = uuid.uuid4().hex[:12]
-    project_root = _project_root()
-    output_path = project_root / parsed.output
-    log_path = project_root / "data" / "logs" / f"list_flights_{run_id}.log"
+    root = project_root()
+    output_path = root / parsed.output
+    log_path = root / "data" / "logs" / f"list_flights_{run_id}.log"
     log_path.parent.mkdir(parents=True, exist_ok=True)
 
     logging.basicConfig(
@@ -309,9 +282,9 @@ def main(args: Optional[list[str]] = None) -> int:
             len(fetched_records),
         )
 
-    existing = _read_jsonl(output_path)
+    existing = read_jsonl(output_path)
     merged = _merge_idempotent(existing, fetched_records)
-    _write_jsonl(output_path, merged)
+    write_jsonl(output_path, merged)
 
     logging.info("Wrote %s flight record(s) to %s", len(merged), output_path)
     print(f"Login successful, {len(fetched_records)} flight(s) fetched, "

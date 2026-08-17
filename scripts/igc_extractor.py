@@ -21,7 +21,6 @@ for secrets handling.
 from __future__ import annotations
 
 import argparse
-import json
 import logging
 import os
 import subprocess
@@ -30,6 +29,8 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
+
+from common import project_root, read_jsonl, sanitize_filename, write_jsonl
 
 
 def _load_dotenv_if_available() -> None:
@@ -40,10 +41,6 @@ def _load_dotenv_if_available() -> None:
         load_dotenv(dotenv_path, override=False)
     except ImportError:
         pass
-
-
-def _project_root() -> Path:
-    return Path(__file__).resolve().parent.parent
 
 
 def _parse_args(args: Optional[list[str]] = None) -> argparse.Namespace:
@@ -138,22 +135,16 @@ def _validate_credentials(parsed: argparse.Namespace) -> tuple[str, str]:
     return username, password
 
 
-def _sanitize_filename(value: str) -> str:
-    """Mirror the safe-filename logic used by download_igc.py."""
-    unsafe = set('\\\\/:*?"<>|')
-    return "".join(c if c not in unsafe and c.isprintable() else "_" for c in value)
-
-
 def _igc_filename(record: dict[str, Any]) -> str:
     """Build the IGC filename exactly as download_igc.py does."""
     flight_id = record["IDFlight"]
     parts = [str(flight_id)]
     date = record.get("FlightDate")
     if date:
-        parts.append(_sanitize_filename(str(date)))
+        parts.append(sanitize_filename(str(date)))
     takeoff = record.get("TakeoffLocation")
     if takeoff:
-        parts.append(_sanitize_filename(str(takeoff)))
+        parts.append(sanitize_filename(str(takeoff)))
     if len(parts) > 1:
         return "_".join(parts) + ".igc"
     return f"{flight_id}.igc"
@@ -173,29 +164,6 @@ def _setup_logging(run_id: str, logs_dir: Path) -> Path:
     return log_path
 
 
-def _read_jsonl(path: Path) -> list[dict[str, Any]]:
-    if not path.exists():
-        return []
-    records: list[dict[str, Any]] = []
-    with path.open("r", encoding="utf-8") as fh:
-        for line in fh:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                records.append(json.loads(line))
-            except json.JSONDecodeError as exc:
-                logging.warning("Skipping malformed JSONL line: %s", exc)
-    return records
-
-
-def _write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8", newline="") as fh:
-        for record in records:
-            fh.write(json.dumps(record, ensure_ascii=False) + "\n")
-
-
 def _prepare_download_subset(
     all_flights_path: Path,
     limit: int,
@@ -206,13 +174,13 @@ def _prepare_download_subset(
     record with ``IgcFilename`` (so import_flights.py can locate the file),
     and write a subset JSONL for the download/import steps.
     """
-    all_records = _read_jsonl(all_flights_path)
+    all_records = read_jsonl(all_flights_path)
     if not all_records:
         return 0
     subset = all_records[:limit]
     for record in subset:
         record["IgcFilename"] = _igc_filename(record)
-    _write_jsonl(subset_path, subset)
+    write_jsonl(subset_path, subset)
     return len(subset)
 
 
@@ -255,7 +223,7 @@ def _run_download_igc(
 ) -> int:
     """Download IGC files for the subset of flights in batches."""
     output_dir = project_root / parsed.output_dir
-    all_records = _read_jsonl(flights_jsonl)
+    all_records = read_jsonl(flights_jsonl)
     total = len(all_records)
     if total == 0:
         return 0
@@ -347,15 +315,15 @@ def main(args: Optional[list[str]] = None) -> int:
         print(f"Error: {exc}", file=sys.stderr)
         return 1
 
-    project_root = _project_root()
-    output_dir = project_root / parsed.output_dir
-    state_db = project_root / parsed.state_db
+    root = project_root()
+    output_dir = root / parsed.output_dir
+    state_db = root / parsed.state_db
 
     output_dir.mkdir(parents=True, exist_ok=True)
     state_db.parent.mkdir(parents=True, exist_ok=True)
 
     run_id = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    logs_dir = project_root / "data" / "logs"
+    logs_dir = root / "data" / "logs"
     log_path = _setup_logging(run_id, logs_dir)
     logger = logging.getLogger(__name__)
 
@@ -384,13 +352,13 @@ def main(args: Optional[list[str]] = None) -> int:
     print(f"  rate_limit: {parsed.rate_limit} s")
     print(f"  max_retries: {parsed.max_retries}")
 
-    list_rc = _run_list_flights(parsed, project_root, logger)
+    list_rc = _run_list_flights(parsed, root, logger)
     if list_rc != 0:
         logger.error("Flight list step failed with exit code %d", list_rc)
         return list_rc
 
     all_flights_path = project_root / "data" / "processed" / "flights.jsonl"
-    all_records = _read_jsonl(all_flights_path)
+    all_records = read_jsonl(all_flights_path)
     logger.info("Flight list contains %d record(s)", len(all_records))
 
     if parsed.dry_run:
