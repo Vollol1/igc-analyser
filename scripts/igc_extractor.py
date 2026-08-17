@@ -302,11 +302,11 @@ def _run_import_flights(
     logger: logging.Logger,
     run_id: str,
 ) -> int:
-    """Import metadata and IGC files into SQLite."""
+    """Import metadata and IGC files into the analysis SQLite database."""
     args = [
         "--flights-jsonl", str(flights_jsonl),
         "--igc-dir", str(project_root / parsed.output_dir),
-        "--db", str(project_root / parsed.state_db),
+        "--db", str(project_root / "data" / "igc-extractor.db"),
         "--schema", str(project_root / "data" / "schema.sql"),
         "--export-dir", str(project_root / "data" / "export"),
         "--log-dir", str(project_root / "data" / "logs"),

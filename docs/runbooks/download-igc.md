@@ -118,7 +118,7 @@ Eingaben:
 - `data/igc/*.igc`
 
 Ausgaben:
-- `data/igc_extractor.db` (Tabellen `flights`, `flight_stats`)
+- `data/igc-extractor.db` (Tabellen `flights`, `flight_stats`)
 - `data/export/flights_overview.json`
 - Log unter `data/logs/import_flights_<run_id>.log`
 
@@ -164,7 +164,7 @@ pkill -f download_igc.py
 
 - [ ] `data/igc/` enthält die erwartete Anzahl `.igc`-Dateien.
 - [ ] `data/processed/flights.jsonl` ist aktuell.
-- [ ] `data/igc_extractor.db` wurde aktualisiert.
+- [ ] `data/igc-extractor.db` wurde aktualisiert.
 - [ ] `import_flights.py` meldet keine unerwarteten `invalid`-Status.
 - [ ] `data/export/flights_overview.json` ist vorhanden.
 - [ ] Keine `.env` oder Log-Dateien wurden committet.

@@ -20,7 +20,7 @@ igc-extractor/
 │   ├── export/               # Statische JSON-Exports
 │   ├── logs/                 # Laufzeit-Logs und Summaries
 │   ├── igc_extractor.db    # SQLite-Statusdatenbank des Downloaders (Resume / Idempotenz)
-│   ├── igc-extractor.db      # SQLite-Analysedatenbank des Importers
+│   ├── igc-extractor.db      # SQLite-Analysedatenbank des Importers / Exporters
 │   └── schema.sql            # SQLite-Schema für den Import
 ├── docs/
 │   ├── decisions/            # Architecture Decision Records (ADRs)

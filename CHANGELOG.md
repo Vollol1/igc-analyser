@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- `scripts/igc_extractor.py` now passes `import_flights.py` the analysis database `data/igc-extractor.db` via `--db`, instead of the downloader state database `data/igc_extractor.db`. The `--state-db` parameter continues to control the downloader/resume database. This ensures validation status written by `import_flights.py` is visible to `export_igc_zip.py`.
+
 ## [0.2.0] - 2026-08-16
 
 ### Added
