@@ -7,8 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-08-17
+
 ### Fixed
 - `scripts/igc_extractor.py` now passes `import_flights.py` the analysis database `data/igc-extractor.db` via `--db`, instead of the downloader state database `data/igc_extractor.db`. The `--state-db` parameter continues to control the downloader/resume database. This ensures validation status written by `import_flights.py` is visible to `export_igc_zip.py`.
+- Corrected documentation references in `README.md` and `docs/runbooks/download-igc.md` to show `data/igc-extractor.db` as the import/analysis database.
+
+### Notes
+- Documented cleanup of the `flights`/`flight_stats` tables that had accidentally been created in `data/igc_extractor.db`. 18 missing flights were migrated to `data/igc-extractor.db`; the erroneous tables were then dropped from the state database. See `docs/notes/pipeline-notes.md`.
 
 ## [0.2.0] - 2026-08-16
 
@@ -53,5 +59,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 288 IGC files downloaded to `data/igc/`.
 - 287 valid, 1 invalid (missing G-Record), 0 missing.
 
+[0.2.1]: https://github.com/Vollol1/igc-extractor/releases/tag/v0.2.1
 [0.2.0]: https://github.com/Vollol1/igc-extractor/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Vollol1/igc-extractor/releases/tag/v0.1.0

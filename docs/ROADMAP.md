@@ -34,6 +34,20 @@ Dieser Abschnitt sammelt Änderungen, die noch keinem Release zugeordnet sind, a
 
 ---
 
+## v0.2.1 — Bugfix: Import-Datenbank-Pfad (released 2026-08-17)
+
+**Ziel:** Einen Bug korrigieren, bei dem der Orchestrator `scripts/igc_extractor.py` `scripts/import_flights.py` versehentlich die Downloader-State-DB (`data/igc_extractor.db`) statt der Analyse-DB (`data/igc-extractor.db`) übergeben hat. Zusätzlich Bereinigung der daraus entstandenen versehentlichen Tabellen in der State-DB.
+
+### Released Changes
+
+- [x] `scripts/igc_extractor.py` übergibt `--db` jetzt korrekt als `data/igc-extractor.db`.
+  - `--state-db` bleibt `data/igc_extractor.db` für Downloader-Resume/Idempotenz.
+  - `export_igc_zip.py` liest den Validierungsstatus jetzt aus der korrekten DB.
+- [x] Dokumentation korrigiert (`README.md`, `docs/runbooks/download-igc.md`).
+- [x] Datenbank-Incident dokumentiert (`docs/notes/pipeline-notes.md`).
+
+---
+
 ## v0.2.0 — IGC-Export & Dokumentation (released 2026-08-16)
 
 **Ziel:** Die bestehende Pipeline um einen reproduzierbaren, lokalen IGC-Export erweitern, der für Vereins-/Lizenz-Zwecke (z. B. Höhenflug-Nachweis) genutzt werden kann. Zusätzlich wird die Projekt-Dokumentation konsolidiert.

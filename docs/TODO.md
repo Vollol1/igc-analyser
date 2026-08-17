@@ -16,6 +16,14 @@ Langfristige Releases und Feature-Zuordnungen sind in [`docs/ROADMAP.md`](./ROAD
 
 _(keine)_
 
+## Erledigt
+
+- [x] v0.2.1 Patch-Release
+  - Bugfix: `scripts/igc_extractor.py` übergibt `import_flights.py` jetzt `data/igc-extractor.db` statt der State-DB.
+  - Dokumentation korrigiert (`README.md`, `docs/runbooks/download-igc.md`).
+  - Datenbank-Incident dokumentiert (`docs/notes/pipeline-notes.md`).
+  - `CHANGELOG.md` und `docs/ROADMAP.md` für v0.2.1 aktualisiert.
+
 ## Kurzfristig geplant
 
 _(verschoben aus dem ursprünglichen v0.2.0-Scope; siehe [ROADMAP.md](./ROADMAP.md) [Unreleased] / Nächstes Release)_
