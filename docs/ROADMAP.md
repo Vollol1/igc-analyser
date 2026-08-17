@@ -19,18 +19,7 @@ Die Roadmap wird bei jedem größeren Feature oder Release aktualisiert.
 
 Dieser Abschnitt sammelt Änderungen, die noch keinem Release zugeordnet sind, aber bereits fest eingeplant oder in Arbeit.
 
-### Hauptthema: Interaktive IGC-Flugkarte
-
-- Interaktive Karte aller IGC-Flüge als eigenständige HTML-Datei
-  - Neues Skript `scripts/export_flight_map.py`.
-  - Liest `data/processed/flights.jsonl` + IGC-Dateien, parst B-Records.
-  - Erzeugt Leaflet-Karte mit OpenStreetMap; Tracks als Polylinien, Startplatz-Marker, interaktive Popups.
-  - Statistik-Panel (Fluganzahl, Zeitraum, Gesamtflugzeit, XC-Distanz, bester Flug, Startplätze, Gleitschirme, valid/invalid/missing).
-  - Umschaltbare Layer: Kategorie (Lokal/XC/Höhenflug, Default), Startplatz, Flugjahr, Gleitschirm.
-  - Output: `data/export/flights_map_<run_id>.html`, `data/logs/export_flight_map_<run_id>.log`, `data/logs/export_flight_map_summary_<run_id>.json`.
-  - Details: [`docs/notes/flight-map-requirements.md`](./notes/flight-map-requirements.md).
-
-### Weitere Themen
+### Hauptthema: Testsuite, Robustheit und Datenqualität
 
 - Testsuite aufbauen (`tests/`)
   - Unit-Tests für IGC-Validierung, Dateinamensgenerierung, Hash-Bildung.
@@ -44,6 +33,12 @@ Dieser Abschnitt sammelt Änderungen, die noch keinem Release zugeordnet sind, a
   - ADR erarbeiten, der den Migrationspfad zu einer einzigen DB beschreibt.
 - `LandingLocation` aus der DHV-XC Detailseite scrapen und im Export berücksichtigen.
 - Validierungs- und Ausreißer-Checks für Flugdaten (Distanz, Flugzeit, Höhenmeter).
+
+### Optional / Zurückgestellt
+
+- Höhenflug-Nachweis (dedizierter Export/Filter nach Mindesthöhe)
+  - Niedrig priorisiert; bleibt als Idee erhalten, hat aber kein festes Release-Ziel mehr.
+  - Vorgeschlagene Ablage: unter `v0.5.0+` oder als separates Tool/Script, sobald Bedarf besteht.
 
 ---
 
@@ -137,22 +132,13 @@ und dient gleichzeitig als persönliche Flugretrospektive.
 
 ---
 
-## v0.4.0 — Kartenvisualisierung & Import aus weiteren Quellen
+## v0.4.0 — Import aus weiteren Quellen & erweiterte Visualisierung
 
-**Ziel:** Flüge nicht nur als Datensatz, sondern auch visuell erfahrbar machen und weitere Datenquellen anbinden.
+**Ziel:** Weitere Datenquellen anbinden und die Darstellung der importierten Flüge über die Basis-Karte hinaus erweitern.
 
 ### Geplante Änderungen
 
-#### 4.1 Kartenvisualisierung
-
-- [-] Kartenexport der importierten Flüge
-  - Statische Karte (z. B. mit `folium` oder `leaflet`-basiertem HTML-Export), die Startplätze oder Flugtrajektorien zeigt.
-  - Optional: Heatmap der häufigsten Start-/Landeorte.
-- [-] Trajektorien parsen
-  - B-Records aus IGC-Dateien auslesen (Breite, Länge, Höhe).
-  - Vereinfachte Darstellung, keine Echtzeit-Wiedergabe.
-
-#### 4.2 Import aus weiteren Quellen
+#### 4.1 Import aus weiteren Quellen
 
 - [-] Adapter für zusätzliche Quellen
   - Lokale IGC-Dateien aus Logger-Software oder anderen Plattformen importieren.
@@ -161,17 +147,22 @@ und dient gleichzeitig als persönliche Flugretrospektive.
   - Unabhängig von der Quelle werden Flüge in dasselbe SQLite-Schema importiert.
   - Quellenkennzeichnung pro Flug (z. B. `source = 'dhv-xc'` oder `source = 'local-igc'`).
 
+#### 4.2 Erweiterte Visualisierung
+
+- [?] Statischer SVG/PNG-Export der Karte für Berichte oder Druck.
+- [?] Heatmap der häufigsten Start-/Landeorte.
+- [?] 3D-Ansicht der Tracks (potenziell eigenes Minor-Release, wenn umfangreicher).
+
 ### Motivation
 
-Die rein tabellarische Aufbereitung reicht für Analysen, nicht aber für räumliches Verständnis.
-Eine Kartenvisualisierung macht Startplatz-Cluster und Fluggebiete sofort sichtbar.
-Gleichzeitig sollen Flüge aus anderen Quellen in denselben lokalen Bestand einfließen.
+Mit mehreren Datenquellen wächst der lokale Flugbestand; gleichzeitig soll die räumliche Aufbereitung
+über die interaktive Basiskarte aus v0.3.0 hinaus erweitert werden.
 
 ### Technische Hinweise
 
-- Kein eigenes Web-Backend: Kartenexport als statische HTML-Datei unter `data/export/`.
-- Für B-Record-Parsing können existierende Bibliotheken oder eine schlanke Eigenlösung evaluiert werden (ADR erforderlich).
+- Kein eigenes Web-Backend: Kartenexport weiterhin als statische HTML-Datei unter `data/export/`.
 - Adapter-Struktur einführen: `scripts/sources/base.py`, `scripts/sources/dhv_xc.py`, `scripts/sources/local_igc.py`.
+- 3D erfordert ADR und ggf. neue Abhängigkeiten (z. B. Cesium / deck.gl / matplotlib 3D).
 
 ---
 
@@ -209,6 +200,7 @@ v0.5.0 soll den lokalen Flugbestand zuverlässig aufräumen und dem Nutzer trans
 - Cloud-Hosting oder zentrale Web-API (Projekt bleibt lokal-first).
 - Kryptographische G-Record-Verifikation (außerhalb des Projekt-Scope; strukturelle Validierung bleibt ausreichend).
 - Echtzeit-Tracking oder Live-Upload von Flügen.
+- Höhenflug-Nachweis als dediziertes Feature (optional; siehe [Unreleased] / Optional).
 
 ---
 

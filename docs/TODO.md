@@ -54,11 +54,11 @@ _(verschoben aus dem ursprünglichen v0.2.0-Scope; siehe [ROADMAP.md](./ROADMAP.
   - Längster Flug / maximale Distanz können laut Benutzer-Feedback nicht stimmen – Track hat Fehler.
   - Plausibilitätsprüfung für Distanz, Flugzeit und Höhenmeter einführen.
   - Auffällige Flüge in `flights.csv`/Datenbank markieren oder in separates Protokoll ausgeben.
-- [ ] Kartenfeature: Schritte für `scripts/export_flight_map.py`
+- [-] Kartenfeature: Schritte für `scripts/export_flight_map.py` (v0.3.0)
   - Utilities extrahieren (wiederverwendbarer B-Record-Parser, ggf. gemeinsame Flug-Metadaten-Leser).
   - Basis-Karte mit Kategorie-Layer (Lokal / XC / Höhenflug).
   - Zusätzliche Gruppierungen (Startplatz, Flugjahr, Gleitschirm).
-  - SVG/PNG-Export der Karte.
+  - SVG/PNG-Export der Karte (optional, v0.4.0).
   - 3D-Ansicht der Tracks (optional, später).
 
 ## Erledigt
@@ -105,13 +105,13 @@ _(verschoben aus dem ursprünglichen v0.2.0-Scope; siehe [ROADMAP.md](./ROADMAP.
 ## Mittelfristig geplant
 
 - [ ] Datenqualität weiterhin gelegentlich prüfen (z. B. nach jedem größeren Download).
-- [x] IGC-Export-Archiv für Höhenflug-Nachweis (v0.2.0 — Foundation für v0.3.0)
+- [x] IGC-Export-Archiv als Basis für Nachweise (v0.2.0)
   - `scripts/export_igc_zip.py` erstellt ein ZIP/tar.gz-Archiv mit `README.txt`, `export_meta.json`, `flights.csv`, `flight_summary.pdf` und den IGC-Dateien.
   - `README.txt` enthält den Piloten-/Absendernamen (Parameter `--pilot-name` / `--sender`).
   - `flight_summary.pdf` enthält ein strukturiertes Deckblatt (Pilot, Zeitraum, Anzahl Flüge, IGC-Dateien, Gesamtflugzeit, XC-Distanz, bester Flug, Startorte, Erstellungsdatum, Hinweis zur Validierung) sowie eine tabellarische Übersicht aller Flüge.
   - PDF-Generierung über `reportlab>=4.0.0` (reiner Python, keine externen System-Dependencies); siehe [ADR-002](../decisions/ADR-002-pdf-reporting-reportlab.md).
   - Generierte Archive stehen in `.gitignore`.
-  - Die vollständige Höhenflug-Nachweis-Funktion (Filter nach Mindesthöhe, dedizierte Views) bleibt Ziel von v0.3.0; siehe [`docs/ROADMAP.md`](./ROADMAP.md).
+  - Der vollständige Höhenflug-Nachweis (Filter nach Mindesthöhe, dedizierte Views) ist zurückgestellt; siehe `docs/ROADMAP.md` [Unreleased] / Optional.
   - Siehe auch [`docs/runbooks/export-igc.md`](../runbooks/export-igc.md).
 - [ ] `LandingLocation` aus DHV-XC Detailseite scrapen und in Export aufnehmen
   - Die Flugliste (`/flights?mine=1&incpriv=1`) liefert `LandingLocation` nicht.
@@ -136,8 +136,9 @@ _(keine außerhalb von "Erledigt")_
 
 - [ ] IGC-Download- und Import-Pipeline vollständig ohne manuelle Worktree-Intervention ausführbar.
 - [ ] Alle gewünschten Flüge lokal vorhanden, validiert und in SQLite importiert.
-- [ ] IGC-Export für Höhenflug-Nachweis (v0.3.0)
-- [ ] Kartenvisualisierung der importierten Flüge (v0.4.0)
+- [x] Interaktive Kartenvisualisierung der importierten Flüge (v0.3.0)
+- [?] Höhenflug-Nachweis (dedizierter Export/Filter nach Mindesthöhe) (zurückgestellt)
+- [?] Erweiterte Kartenvisualisierung (SVG/PNG-Export, Heatmap, 3D) (v0.4.0)
 - [ ] Import aus weiteren Quellen (z. B. XContest, XCTrack, lokale Logger-Dateien) (v0.4.0)
 - [ ] Deduplizierung und Konsistenzprüfung über alle importierten Flüge hinweg (v0.5.0)
 - [ ] Testsuite und CI für zuverlässige Releases (siehe Kurzfristig geplant)

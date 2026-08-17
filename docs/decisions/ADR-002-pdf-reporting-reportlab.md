@@ -6,7 +6,7 @@ Accepted
 
 ## Kontext
 
-Mit v0.3.0 soll der IGC-Export für Höhenflug-Nachweise eine strukturierte PDF-Zusammenfassung enthalten (Deckblatt + Flugtabelle). Die PDF muss parallel zu `README.txt`, `export_meta.json` und `flights.csv` in das ZIP/tar.gz-Archiv geschrieben werden.
+Ab v0.2.0 soll der IGC-Export-Archiv eine strukturierte PDF-Zusammenfassung enthalten (Deckblatt + Flugtabelle). Die PDF kann für Vereins-/Lizenz-Zwecke (z. B. Höhenflug-Nachweis) genutzt werden und wird parallel zu `README.txt`, `export_meta.json` und `flights.csv` in das ZIP/tar.gz-Archiv geschrieben.
 
 Für die Python-Welt stehen im Wesentlichen zwei Optionen zur Verfügung:
 
