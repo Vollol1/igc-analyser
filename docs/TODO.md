@@ -4,6 +4,8 @@ Lebendige Aufgabenliste für den igc-extractor. Diese Datei liegt im Repository,
 
 Langfristige Releases und Feature-Zuordnungen sind in [`docs/ROADMAP.md`](./ROADMAP.md) beschrieben.
 
+> **Hinweis:** Prozessregel nach Worktree-Verlust angepasst — siehe [AGENT_BEHAVIOR_NOTES.md](../AGENT_BEHAVIOR_NOTES.md) Regel 13 und [docs/notes/worktree-loss-incident-2026-08-17.md](./notes/worktree-loss-incident-2026-08-17.md).
+
 ## Status-Legende
 
 - `[ ]` offen

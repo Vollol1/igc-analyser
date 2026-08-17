@@ -162,6 +162,17 @@ pytest tests/
 
 ---
 
+## 13. `task done` nur nach physischem Nachweis in `main`
+
+**m) Der Kanban-Sidebar-Agent darf `task done` NIE aufrufen, bevor er geprüft hat, dass alle neuen Dateien und Änderungen tatsächlich im Haupt-Repository erscheinen (`git log`, `git status`, `git diff`).**
+
+- `task done` löscht den Worktree. Wenn die Ergebnisse nicht zuvor committed und in `main` nachweisbar sind, gehen neue Dateien und uncommitted Änderungen unwiderruflich verloren.
+- Wenn `task done` den Worktree dennoch löscht und die Änderungen nicht in `main` sind, müssen die Dateien vor dem endgültigen Löschen manuell aus dem letzten Checkpoint oder Worktree-Backup ins Haupt-Repository kopiert und committet werden (siehe Regel 8).
+- Für Tasks mit `--auto-review-enabled true` muss der Agent nach `task done` sofort `git log` im Haupt-Repository prüfen. Fehlen die erwarteten Ergebnisse, muss er die Dateien aus dem letzten Checkpoint/Worktree-Backup ins Haupt-Repo übernehmen und einen Nachfolge-Commit durchführen.
+- Der physische Nachweis in `main` ist die einzige akzeptable Bedingung, um `task done` auszulösen.
+
+---
+
 ## Quick checklist (copy before committing)
 
 ```markdown
@@ -175,6 +186,7 @@ pytest tests/
 - [ ] Wiederkehrende Patterns → neue Regel in dieser Datei
 - [ ] Relative Gitea-Release-Links auf `src/tag/<version>/...` prüfen
 - [ ] Bei Merge-Problemen: Worktree-Ergebnisse vom Kanban-Sidebar-Agent ins Haupt-Repo übernehmen lassen
+- [ ] Nach `task done` geprüft, ob Dateien in `main` vorhanden sind (`git log`)
 ```
 
 **When in doubt: document first, code second, test always.**

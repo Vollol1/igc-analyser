@@ -131,6 +131,48 @@ def _parse_igc_longitude(lon_str: str, lon_sign: str) -> float:
     return -lon if lon_sign == "W" else lon
 
 
+def _normalize_igc_altitude(alt_str: str) -> Optional[int]:
+    """
+    Normalize an IGC B-Record altitude field to a 5-digit integer in metres.
+
+    Most loggers encode altitude as a 5-digit metre value, e.g. ``01860``.
+    Some loggers emit non-standard encodings:
+
+    * additional fractional digits (``018600`` → ``01860``)
+    * an ``A`` marker prefix used by some Flymaster/Skytraxx variants
+    * other non-digit noise
+
+    The strategy is therefore lenient: take up to the first five *digits*
+    from the field and interpret them as a signed integer. If the resulting
+    string is all digits, return it as ``int``; otherwise return ``None``.
+    """
+    if not alt_str:
+        return None
+
+    # Some loggers prefix GNSS altitude with an 'A' marker. Strip a leading
+    # 'A' before extracting digits, but keep a possible leading minus sign.
+    if alt_str.startswith("A"):
+        alt_str = alt_str[1:]
+
+    digits = ""
+    for char in alt_str:
+        if char.isdigit() or (char == "-" and not digits):
+            digits += char
+        # Once we have collected at least five digits we can stop; anything
+        # beyond that is treated as fractional / logger-specific noise.
+        if len(digits.lstrip("-")) >= 5:
+            break
+
+    if not digits or digits == "-":
+        return None
+
+    # Intentionally tolerate values that may look like they have a sign; IGC
+    # altitudes are unsigned metres, but a minus is accepted defensively.
+    if digits.lstrip("-").isdigit():
+        return int(digits)
+    return None
+
+
 def parse_igc_records(igc_path: Path) -> Iterator[BRecord]:
     """
     Parse B-Records from an IGC file.
@@ -143,6 +185,11 @@ def parse_igc_records(igc_path: Path) -> Iterator[BRecord]:
 
     Fields after the 35-character base record are ignored, so the parser is
     robust against logger-specific extensions.
+
+    Some loggers omit the pressure altitude field and emit an ``A`` marker at
+    position 24 followed immediately by the 5-digit GNSS altitude. In that
+    case the pressure altitude is set to ``None`` and the GNSS altitude is
+    parsed from position 24 onwards.
 
     Yields ``BRecord`` objects. Corrupt B-Records are logged and skipped;
     non-B lines are ignored.
@@ -165,8 +212,17 @@ def parse_igc_records(igc_path: Path) -> Iterator[BRecord]:
             time = record[1:7]
             lat = _parse_igc_latitude(record[7:14], record[14])
             lon = _parse_igc_longitude(record[15:23], record[23])
-            alt_press = to_int(record[24:29])
-            alt_gnss = to_int(record[29:34])
+
+            # Position 24 is normally the start of the 5-digit pressure
+            # altitude. Certain Flymaster/Skytraxx variants place an 'A'
+            # marker here and encode only GNSS altitude after it.
+            raw_press = record[24:29]
+            if raw_press.startswith("A") and record[25:30].isdigit():
+                alt_press = None
+                alt_gnss = _normalize_igc_altitude(record[24:30])
+            else:
+                alt_press = _normalize_igc_altitude(raw_press)
+                alt_gnss = _normalize_igc_altitude(record[29:34])
         except (ValueError, IndexError) as exc:
             logging.warning("Skipping malformed B-Record in %s: %s", igc_path, exc)
             continue
