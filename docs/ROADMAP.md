@@ -19,6 +19,19 @@ Die Roadmap wird bei jedem größeren Feature oder Release aktualisiert.
 
 Dieser Abschnitt sammelt Änderungen, die noch keinem Release zugeordnet sind, aber bereits fest eingeplant oder in Arbeit.
 
+### Hauptthema: Interaktive IGC-Flugkarte
+
+- Interaktive Karte aller IGC-Flüge als eigenständige HTML-Datei
+  - Neues Skript `scripts/export_flight_map.py`.
+  - Liest `data/processed/flights.jsonl` + IGC-Dateien, parst B-Records.
+  - Erzeugt Leaflet-Karte mit OpenStreetMap; Tracks als Polylinien, Startplatz-Marker, interaktive Popups.
+  - Statistik-Panel (Fluganzahl, Zeitraum, Gesamtflugzeit, XC-Distanz, bester Flug, Startplätze, Gleitschirme, valid/invalid/missing).
+  - Umschaltbare Layer: Kategorie (Lokal/XC/Höhenflug, Default), Startplatz, Flugjahr, Gleitschirm.
+  - Output: `data/export/flights_map_<run_id>.html`, `data/logs/export_flight_map_<run_id>.log`, `data/logs/export_flight_map_summary_<run_id>.json`.
+  - Details: [`docs/notes/flight-map-requirements.md`](./notes/flight-map-requirements.md).
+
+### Weitere Themen
+
 - Testsuite aufbauen (`tests/`)
   - Unit-Tests für IGC-Validierung, Dateinamensgenerierung, Hash-Bildung.
   - Integrationstest mit lokalen Mock-IGC-Dateien ohne Netzwerk.
@@ -79,28 +92,48 @@ v0.2.0 liefert nun einen praxistauglichen Export inkl. menschen- und maschinenle
 
 ---
 
-## v0.3.0 — IGC-Export für Höhenflug-Nachweis
+## v0.3.0 — Interaktive IGC-Flugkarte
 
-**Ziel:** Aus den lokalen Flugdaten einen Nachweis für Höhenflüge generieren, der für Vereins-/Lizenz-Zwecke verwendet werden kann.
+**Ziel:** Aus den lokalen IGC-Flugdaten eine eigenständige, interaktive HTML-Karte erzeugen, die Startplätze,
+Flugtrajektorien und Statistiken darstellt und direkt im Browser nutzbar ist.
 
 ### Geplante Änderungen
 
-- [-] Export-Modul für Höhenflugnachweise
-  - Filter nach Datum, Startplatz, Gleitschirm und Mindest-Höhe.
-  - Strukturierter CSV- oder PDF-Export mit Flugnummer, Datum, Start-/Landeplatz, Dauer und Best-Distanz.
-- [-] Erweiterte SQLite-Views
-  - View `v_hoehenflug_nachweis` mit den für den Nachweis relevanten Feldern.
+- [-] Neues Skript `scripts/export_flight_map.py`
+  - Liest `data/processed/flights.jsonl` und die zugehörigen IGC-Dateien aus `data/igc/`.
+  - Parst B-Records (Breite, Länge, Höhe) aus den IGC-Dateien.
+  - Erzeugt eine Leaflet-basierte HTML-Karte mit OpenStreetMap-Hintergrund.
+- [-] Karteninhalte
+  - Tracks als Polylinien, Startplatz-Marker, interaktive Popups mit Flugdetails.
+  - Statistik-Panel mit Fluganzahl, Zeitraum, Gesamtflugzeit, XC-Distanz, bestem Flug, Startplatzanzahl, Gleitschirm-Anzahl und valid/invalid/missing-Status.
+- [-] Umschaltbare Layer-Gruppen
+  - **Kategorie** (Default): Lokal / XC / Höhenflug.
+  - **Startplatz**, **Flugjahr** und **Gleitschirm** als zusätzliche umschaltbare Layer.
+- [-] Output-Dateien
+  - `data/export/flights_map_<run_id>.html`
+  - `data/logs/export_flight_map_<run_id>.log`
+  - `data/logs/export_flight_map_summary_<run_id>.json`
+
+### Iterationen (ohne harte Versionszuordnung)
+
+Die folgenden Erweiterungen werden als offene Iterationskette verfolgt:
+
+- Basis-Karte mit Kategorie-Layer.
+- Zusätzliche Gruppierungen (Startplatz, Flugjahr, Gleitschirm).
+- Statischer SVG/PNG-Export der Karte für Berichte oder Druck.
+- Spätere 3D-Ansicht der Tracks; bei Umsetzung potenziell ein eigenes Minor-Release.
 
 ### Motivation
 
-Viele Vereine und Lizenzen verlangen einen schlüssigen Höhenflug-Nachweis.
-Statt manuell aus dhv-xc.de zu kopieren, soll igc-extractor einen reproduzierbaren, lokalen Export erzeugen.
+Die bisherigen Exports sind tabellarisch oder archivbasiert.
+Eine interaktive Karte macht räumliche Muster (Startplatz-Cluster, Fluggebiete, häufige Routen) sofort sichtbar
+und dient gleichzeitig als persönliche Flugretrospektive.
 
 ### Technische Hinweise
 
-- Reine Text/CSV-Generierung zuerst; PDF-Ausgabe optional über `reportlab` oder WeasyPrint.
-- Keine kryptographische G-Record-Prüfung (weiterhin nur strukturelle Validierung).
-- Export-Dateien landen unter `data/export/`.
+- Leaflet + OpenStreetMap; reine Python-Generierung, kein Web-Backend nötig.
+- B-Record-Parser soll wiederverwendbar sein.
+- 3D wird vorgemerkt, aber nicht Teil von v0.3.0.
 
 ---
 

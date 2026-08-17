@@ -14,7 +14,9 @@ Langfristige Releases und Feature-Zuordnungen sind in [`docs/ROADMAP.md`](./ROAD
 
 ## Aktuell in Arbeit
 
-_(keine)_
+- [-] Kartenfeature vorbereiten/umsetzen
+  - Anforderungen dokumentiert in [`docs/notes/flight-map-requirements.md`](./notes/flight-map-requirements.md).
+  - `scripts/export_flight_map.py` anlegen (Leaflet-Karte aus IGC-Flügen).
 
 ## Erledigt
 
@@ -47,6 +49,12 @@ _(verschoben aus dem ursprünglichen v0.2.0-Scope; siehe [ROADMAP.md](./ROADMAP.
   - Längster Flug / maximale Distanz können laut Benutzer-Feedback nicht stimmen – Track hat Fehler.
   - Plausibilitätsprüfung für Distanz, Flugzeit und Höhenmeter einführen.
   - Auffällige Flüge in `flights.csv`/Datenbank markieren oder in separates Protokoll ausgeben.
+- [ ] Kartenfeature: Schritte für `scripts/export_flight_map.py`
+  - Utilities extrahieren (wiederverwendbarer B-Record-Parser, ggf. gemeinsame Flug-Metadaten-Leser).
+  - Basis-Karte mit Kategorie-Layer (Lokal / XC / Höhenflug).
+  - Zusätzliche Gruppierungen (Startplatz, Flugjahr, Gleitschirm).
+  - SVG/PNG-Export der Karte.
+  - 3D-Ansicht der Tracks (optional, später).
 
 ## Erledigt
 

@@ -126,9 +126,18 @@ Die Pipeline ist so konzipiert, dass unterbrochene Läufe fortgesetzt werden kö
 
 ---
 
+## Kartenfeature (ab geplant v0.3.0)
+
+- Neuer Export-Schritt `scripts/export_flight_map.py` wird die IGC-Tracks in eine interaktive Leaflet-HTML-Karte überführen.
+- Input: `data/processed/flights.jsonl` + IGC-Dateien in `data/igc/`.
+- Output: `data/export/flights_map_<run_id>.html`, `data/logs/export_flight_map_<run_id>.log`, `data/logs/export_flight_map_summary_<run_id>.json`.
+- B-Record-Parser soll wiederverwendbar sein, damit er auch für zukünftige 3D-Visualisierungen genutzt werden kann.
+- Details siehe [`flight-map-requirements.md`](./flight-map-requirements.md).
+
 ## Changelog
 
 - **2026-08-17**: Datenbank-Incident bereinigt: `flights`/`flight_stats` aus `data/igc_extractor.db` entfernt und fehlende Daten nach `data/igc-extractor.db` migriert.
+- **2026-08-17**: Anforderungen für interaktive IGC-Flugkarte dokumentiert (`flight-map-requirements.md`); v0.3.0 in `docs/ROADMAP.md` auf Kartenfeature umgestellt.
 - **2026-07-29**: Echter End-to-End-Lauf mit 288 eigenen Flügen durchgeführt.
   - Download-Strategie: `--rate-limit 2.0 --batch-size 40 --batch-pause 30`.
   - Ergebnis: 288/288 IGC-Dateien heruntergeladen, 287/288 valid, 1 invalid (Flug 2234459 ohne G-Record).
