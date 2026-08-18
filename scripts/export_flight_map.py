@@ -97,6 +97,8 @@ class FlightRecord:
     track: list[BRecord] = field(default_factory=list)
     max_altitude: Optional[int] = None
     missing_igc: bool = False
+    has_outliers: bool = False
+    outlier_count: int = 0
 
     @property
     def year(self) -> Optional[str]:
@@ -149,10 +151,15 @@ class FlightRecord:
             ("ValidStatus", self.valid or "unknown"),
             ("TrackPoints", len(self.track)),
         ]
+        if self.has_outliers:
+            rows.append(("OutlierPoints", f"{self.outlier_count} (filtered)"))
         cells = "".join(
             f"<tr><th>{html.escape(str(label))}</th><td>{html.escape(str(value))}</td></tr>"
             for label, value in rows
         )
+        if self.has_outliers:
+            warning = "<tr><td colspan='2' style='color:#dc2626;font-weight:600;'>⚠️ Track contains filtered outlier points</td></tr>"
+            cells += warning
         return f"<table class='flight-popup'>{cells}</table>"
 
 
@@ -161,6 +168,80 @@ def _record_altitude(record: BRecord) -> Optional[int]:
     if record.altitude_gnss is not None:
         return record.altitude_gnss
     return record.altitude_pressure
+
+
+def _haversine_distance_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Calculate the great-circle distance between two points in kilometers."""
+    import math
+    R = 6371.0  # Earth's radius in km
+    lat1_rad = math.radians(lat1)
+    lat2_rad = math.radians(lat2)
+    delta_lat = math.radians(lat2 - lat1)
+    delta_lon = math.radians(lon2 - lon1)
+    a = (
+        math.sin(delta_lat / 2) ** 2
+        + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(delta_lon / 2) ** 2
+    )
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * c
+
+
+def _is_valid_coordinate(lat: float, lon: float) -> bool:
+    """Check if coordinates are within valid ranges."""
+    # Valid latitude: -90 to 90, but exclude extreme poles for glider flights
+    if lat < -90 or lat > 90:
+        return False
+    # Valid longitude: -180 to 180
+    if lon < -180 or lon > 180:
+        return False
+    # Exclude coordinates at 0,0 (Gulf of Guinea - common GPS error)
+    if abs(lat) < 0.001 and abs(lon) < 0.001:
+        return False
+    return True
+
+
+def _filter_outliers(
+    points: list[BRecord],
+    max_jump_km: float = 100.0,
+) -> tuple[list[BRecord], int]:
+    """
+    Filter out outlier points from a track.
+    
+    Returns a tuple of (filtered_points, outlier_count).
+    
+    Checks:
+    - Coordinates must be in valid ranges
+    - Consecutive points must not jump more than max_jump_km
+    """
+    if not points:
+        return [], 0
+    
+    filtered: list[BRecord] = []
+    outlier_count = 0
+    last_valid: Optional[BRecord] = None
+    
+    for point in points:
+        # Check valid coordinate range
+        if not _is_valid_coordinate(point.latitude, point.longitude):
+            outlier_count += 1
+            continue
+        
+        # Check for large jumps from last valid point
+        if last_valid is not None:
+            distance = _haversine_distance_km(
+                last_valid.latitude,
+                last_valid.longitude,
+                point.latitude,
+                point.longitude,
+            )
+            if distance > max_jump_km:
+                outlier_count += 1
+                continue
+        
+        filtered.append(point)
+        last_valid = point
+    
+    return filtered, outlier_count
 
 
 def _setup_logging(log_path: Path) -> None:
@@ -296,17 +377,30 @@ def _parse_tracks(
             with_tracks.append(flight)
             continue
 
-        flight.track = _subsample(records)
+        # Filter outliers before subsampling
+        filtered_records, outlier_count = _filter_outliers(records)
+        if outlier_count > 0:
+            flight.has_outliers = True
+            flight.outlier_count = outlier_count
+            logger.warning(
+                "Flight %s: filtered %d outlier points from %d total B-Records",
+                flight.id_flight,
+                outlier_count,
+                len(records),
+            )
+
+        flight.track = _subsample(filtered_records)
         flight.max_altitude = max(
             (alt for rec in records if (alt := _record_altitude(rec)) is not None),
             default=None,
         )
         with_tracks.append(flight)
         logger.info(
-            "Parsed %d B-Records for flight %s (%d points displayed)",
+            "Parsed %d B-Records for flight %s (%d points displayed, %d outliers filtered)",
             len(records),
             flight.id_flight,
             len(flight.track),
+            outlier_count,
         )
     return with_tracks, missing
 
@@ -328,6 +422,9 @@ def _format_distance(km: Optional[float]) -> str:
 
 def _compute_stats(flights: list[FlightRecord]) -> dict[str, Any]:
     total = len(flights)
+    flights_with_track = [f for f in flights if f.track]
+    flights_without_igc = [f for f in flights if f.missing_igc]
+    
     dates = sorted({f.flight_date for f in flights if f.flight_date})
     durations = [f.flight_duration for f in flights if f.flight_duration is not None]
     distances = [f.best_task_distance for f in flights if f.best_task_distance is not None]
@@ -342,6 +439,10 @@ def _compute_stats(flights: list[FlightRecord]) -> dict[str, Any]:
             valid_counts[f.valid] = valid_counts.get(f.valid, 0) + 1
         else:
             valid_counts["unknown"] += 1
+
+    # Count outliers across all flights
+    total_outliers = sum(f.outlier_count for f in flights)
+    flights_with_outliers = sum(1 for f in flights if f.has_outliers)
 
     best_flight = None
     if flights:
@@ -361,12 +462,17 @@ def _compute_stats(flights: list[FlightRecord]) -> dict[str, Any]:
     elif latest:
         period_label = latest
 
+    # Category counts based ONLY on flights with actual tracks
     category_counts = {key: 0 for key in CATEGORY_ORDER}
-    for f in flights:
+    for f in flights_with_track:
         category_counts[f.group_category] = category_counts.get(f.group_category, 0) + 1
 
     return {
         "total_flights": total,
+        "flights_with_track": len(flights_with_track),
+        "flights_without_igc": len(flights_without_igc),
+        "flights_with_outliers": flights_with_outliers,
+        "total_outliers_filtered": total_outliers,
         "period": {
             "earliest_flight_date": earliest,
             "latest_flight_date": latest,
@@ -553,6 +659,10 @@ def _html_page(data: dict[str, Any], pilot_name: str) -> str:
   <h2>Statistik</h2>
   <table>
     <tr><th>Anzahl Fl&uuml;ge</th><td>{stats['total_flights']}</td></tr>
+    <tr><th>Fl&uuml;ge mit Track</th><td>{stats['flights_with_track']}</td></tr>
+    <tr><th>Fl&uuml;ge ohne IGC</th><td>{stats['flights_without_igc']}</td></tr>
+    <tr><th>Fl&uuml;ge mit Outliers</th><td>{stats['flights_with_outliers']}</td></tr>
+    <tr><th>Outlier-Punkte</th><td>{stats['total_outliers_filtered']}</td></tr>
     <tr><th>Zeitraum</th><td>{html.escape(stats['period']['period_label'] or '-')}</td></tr>
     <tr><th>Gesamtflugzeit</th><td>{html.escape(stats['total_flight_duration_formatted'])}</td></tr>
     <tr><th>Summe XC-Distanz</th><td>{_format_distance(stats['sum_xc_distance_km'])}</td></tr>
@@ -566,6 +676,9 @@ def _html_page(data: dict[str, Any], pilot_name: str) -> str:
   <p style="margin:0;">{category_html}</p>
   <p style="margin:8px 0 0; font-size:11px; color:#6b7283;">
     XC = Distanz &gt; 5 km; H&ouml;henflug = max. H&ouml;he &gt; 1000 m; Lokal = Rest.
+  </p>
+  <p style="margin:8px 0 0; font-size:11px; color:#6b7283;">
+    Kategorien z&auml;hlen nur Fl&uuml;ge mit vorhandenem Track.
   </p>
 </div>"""
 
@@ -587,17 +700,17 @@ def _html_page(data: dict[str, Any], pilot_name: str) -> str:
 
     layer.tracks.forEach(track => {{
       const points = track.points.map(p => [p[1], p[0]]);
-      L.polyline(points, {{ color: track.color, weight: 4, opacity: 0.85 }})
+      L.polyline(points, {{ color: track.color, weight: 5, opacity: 0.9 }})
         .bindPopup(track.popup)
         .addTo(group);
     }});
 
     layer.markers.forEach(marker => {{
       L.circleMarker([marker.lat, marker.lon], {{
-        radius: 6,
+        radius: 3,
         color: marker.color,
         fillColor: marker.color,
-        fillOpacity: 0.9,
+        fillOpacity: 0.7,
         weight: 1,
       }})
         .bindPopup(marker.popup)
