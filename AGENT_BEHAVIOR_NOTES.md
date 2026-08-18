@@ -173,6 +173,17 @@ pytest tests/
 
 ---
 
+## 14. Sidebar-Agent darf Dokumentation direkt pflegen
+
+**n) Der Kanban-Sidebar-Agent darf und soll Notizen, Runbooks, TODOs und andere rein dokumentarische Dateien eigenständig bearbeiten, ohne dafür einen separaten Kanban-Task anzulegen.**
+
+- Betroffen sind z. B. `docs/notes/`, `docs/runbooks/`, `docs/TODO.md`, `docs/ROADMAP.md`, `CHANGELOG.md` und `AGENT_BEHAVIOR_NOTES.md` selbst.
+- Kein eigener Task nötig für: Sitzungsnotizen, Status-Updates, TODO-Einträge, Runbook-Korrekturen, Rechtschreib-/Formatierungsfixes.
+- Separate Tasks sind weiterhin sinnvoll, wenn die Dokumentationsänderung Teil eines größeren Features ist oder wenn Code geändert wird, der dokumentiert werden muss.
+- Ziel: Kontext schonen und kleine dokumentarische Pflegearbeiten nicht durch Task-Erstellung aufblasen.
+
+---
+
 ## Quick checklist (copy before committing)
 
 ```markdown
@@ -187,6 +198,7 @@ pytest tests/
 - [ ] Relative Gitea-Release-Links auf `src/tag/<version>/...` prüfen
 - [ ] Bei Merge-Problemen: Worktree-Ergebnisse vom Kanban-Sidebar-Agent ins Haupt-Repo übernehmen lassen
 - [ ] Nach `task done` geprüft, ob Dateien in `main` vorhanden sind (`git log`)
+- [ ] Dokumentation (Notes/Runbooks/TODO) ggf. direkt vom Sidebar-Agent gepflegt
 ```
 
 **When in doubt: document first, code second, test always.**
