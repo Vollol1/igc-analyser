@@ -173,7 +173,7 @@ pytest tests/
 
 ---
 
-## 14. Sidebar-Agent darf Dokumentation direkt pflegen
+## 14. Sidebar-Agent darf Dokumentation direkt pflegen — aber committen und konfliktfrei
 
 **n) Der Kanban-Sidebar-Agent darf und soll Notizen, Runbooks, TODOs und andere rein dokumentarische Dateien eigenständig bearbeiten, ohne dafür einen separaten Kanban-Task anzulegen.**
 
@@ -181,6 +181,19 @@ pytest tests/
 - Kein eigener Task nötig für: Sitzungsnotizen, Status-Updates, TODO-Einträge, Runbook-Korrekturen, Rechtschreib-/Formatierungsfixes.
 - Separate Tasks sind weiterhin sinnvoll, wenn die Dokumentationsänderung Teil eines größeren Features ist oder wenn Code geändert wird, der dokumentiert werden muss.
 - Ziel: Kontext schonen und kleine dokumentarische Pflegearbeiten nicht durch Task-Erstellung aufblasen.
+
+**Ablauf bei direkten Dokumentations-Edits:**
+
+1. **Vor dem Edit prüfen**, ob aktuell Kanban-Tasks laufen:
+   - `kanban task list` aufrufen.
+   - Wenn Tasks in `in_progress` oder `review` sind, die dieselben Dokumentationsdateien berühren könnten, mit dem Edit warten.
+   - Grund: Worktree-Änderungen werden in `main` gemerged; laufende Tasks könnten uncommittede Doc-Änderungen überschreiben oder Konflikte erzeugen.
+2. **Dokumentation editieren** (nur reine Doku, kein Code).
+3. **Sofort committen** nach dem Edit:
+   - `git add <doku-dateien>`
+   - `git commit -m "docs(...): ..."`
+   - Niemals Doc-Änderungen uncommitted liegen lassen, wenn anschließend Tasks gestartet werden.
+4. **Erst danach neue Kanban-Tasks anlegen/starten**, die auf dem aktuellen, committeden Stand aufbauen.
 
 ---
 

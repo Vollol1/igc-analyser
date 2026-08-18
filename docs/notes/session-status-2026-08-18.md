@@ -170,3 +170,47 @@ Alle Code-Änderungen sind implementiert und syntaktisch validiert.
 | `docs/notes/session-status-2026-08-18.md` | - | Neue Session-Notiz (diese Datei) |
 
 **Gesamt:** ~30 Zeilen Code geändert, ~10 Zeilen Dokumentation aktualisiert
+
+---
+
+# Update nach visuellem Test (Nutzer-Feedback)
+
+## Beobachtete Probleme Runde 2
+
+### 1. Kategorie-Zählung passt nicht zur Track-Anzahl
+
+- Statistik-Panel zeigt **306 Flüge** (alle Einträge aus `flights.jsonl`).
+- Layer-Control zeigt **XC (91) + Höhenflug (36) + Lokal (73) = 200** — also nur die tatsächlich mit IGC-Track dargestellten Flüge.
+- Hinweis: Es wurden nur 200 von 306 IGC-Dateien heruntergeladen, daher fehlen 106 Tracks lokal.
+- **Problem:** Die Summe im Panel (`XC: 128 / Höhenflug: 36 / Lokal: 142`) und die Layer-Control-Zählung sind inkonsistent.
+- **Lösungsidee:**
+  - Kategorisierung entweder nur über tatsächlich dargestellte Tracks berechnen.
+  - Oder im Statistik-Panel transparent trennen: "Flüge mit Track: 200 / ohne IGC-Datei: 106".
+  - Kategorien im Layer-Control sollten sich auf die 200 dargestellten Tracks beziehen.
+
+### 2. Track-Punkte / Marker zu groß
+
+- Start-/Track-Marker erscheinen als große Kreise, die die Track-Linien überdecken.
+- Man muss sehr nah heranzoomen, um die eigentliche Polylinie zu erkennen.
+- **Lösungsideen:**
+  - Marker deutlich kleiner machen (z. B. Radius 5–7 statt aktuellem Wert).
+  - Track-Linienstärke weiter erhöhen (z. B. 5–6).
+  - Marker nur bei Hover/Selektion hervorheben.
+  - Optional: Startplatz-Marker und Track-Punkte visulich trennen.
+
+### 3. Ausreißer-Tracks durch fehlerhafte IGC-Punkte
+
+- Beispiel: Track von "Bach, Reutte, Tirol" zieht sich bis zum Äquator/Golf von Guinea.
+- Ursache: Einzelne B-Records enthalten ungültige Koordinaten (z. B. Null-Koordinaten, fehlerhafte Dekodierung oder korrupte Zeilen).
+- **Lösungsideen:**
+  - Beim Parsen Plausibilitätsprüfung einbauen: Koordinaten müssen im erwarteten Gebiet liegen (z. B. ±90° Lat, ±180° Lon, aber auch Sprung-Check zwischen aufeinanderfolgenden Punkten).
+  - Punkte mit offensichtlich falschen Koordinaten herausfiltern.
+  - Flüge mit Ausreißern markieren (z. B. andere Farbe, Hinweis im Popup).
+  - Statistik erweitern um "Flüge mit Ausreißern".
+  - Optional: Bounding-Box pro Track berechnen und Tracks, die Europa verlassen, als auffällig markieren.
+
+## Nächste Fokus-Tasks
+
+1. **Kategorie-Zählung konsistent machen** — auf tatsächlich dargestellte Tracks ausrichten.
+2. **Marker/Track-Punkte dezenter gestalten** — Tracks sollen auch aus der Distanz erkennbar sein.
+3. **IGC-Ausreißer erkennen und filtern** — fehlerhafte Koordinaten entfernen, Tracks markieren.
