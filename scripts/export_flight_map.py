@@ -520,24 +520,27 @@ def _html_page(data: dict[str, Any], pilot_name: str) -> str:
     top: 10px;
     right: 10px;
     z-index: 1000;
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-    padding: 14px 18px;
-    max-width: 340px;
-    max-height: 80vh;
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    padding: 12px 14px;
+    max-width: 320px;
+    max-height: 50vh;
     overflow-y: auto;
-    font-size: 13px;
-    line-height: 1.45;
+    font-size: 12px;
+    line-height: 1.4;
   }}
-  .stats-panel h1 {{ margin: 0 0 10px; font-size: 16px; color: #111827; }}
-  .stats-panel h2 {{ margin: 12px 0 6px; font-size: 13px; color: #374151; border-bottom: 1px solid #e5e7eb; padding-bottom: 2px; }}
-  .stats-panel table {{ width: 100%; border-collapse: collapse; }}
-  .stats-panel th {{ text-align: left; padding-right: 12px; color: #6b7280; font-weight: 600; }}
-  .stats-panel td {{ text-align: right; color: #111827; }}
-  .flight-popup {{ border-collapse: collapse; }}
-  .flight-popup th {{ text-align: left; padding-right: 10px; color: #6b7280; font-weight: 600; }}
-  .flight-popup td {{ color: #111827; }}
+  .stats-panel h1 {{ margin: 0 0 8px; font-size: 15px; color: #111827; }}
+  .stats-panel h2 {{ margin: 10px 0 4px; font-size: 12px; color: #374151; border-bottom: 1px solid #e5e7eb; padding-bottom: 2px; }}
+  .stats-panel p {{ margin: 4px 0; color: #4b5563; }}
+  .stats-panel table {{ width: 100%; border-collapse: collapse; font-size: 11px; }}
+  .stats-panel th {{ text-align: left; padding-right: 10px; padding-bottom: 3px; color: #6b7280; font-weight: 600; }}
+  .stats-panel td {{ text-align: right; color: #111827; padding-bottom: 3px; }}
+  .flight-popup {{ border-collapse: collapse; font-size: 12px; }}
+  .flight-popup th {{ text-align: left; padding-right: 10px; color: #6b7280; font-weight: 600; padding-bottom: 4px; }}
+  .flight-popup td {{ color: #111827; padding-bottom: 4px; }}
+  .leaflet-control-layers {{ z-index: 1001 !important; }}
+  .leaflet-control-layers-expanded {{ background: rgba(255, 255, 255, 0.95); }}
 </style>
 </head>"""
 
@@ -570,9 +573,10 @@ def _html_page(data: dict[str, Any], pilot_name: str) -> str:
   const center = [{center_lat}, {center_lon}];
   const map = L.map('map').setView(center, {initial_zoom});
 
-  L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png', {{
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    maxZoom: 19,
+  L.tileLayer('https://{{s}}.basemaps.cartocdn.com/light_all/{{z}}/{{x}}/{{y}}{{r}}.png', {{
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 20,
   }}).addTo(map);
 
   const layersData = {layers_json};
@@ -583,7 +587,7 @@ def _html_page(data: dict[str, Any], pilot_name: str) -> str:
 
     layer.tracks.forEach(track => {{
       const points = track.points.map(p => [p[1], p[0]]);
-      L.polyline(points, {{ color: track.color, weight: 3, opacity: 0.8 }})
+      L.polyline(points, {{ color: track.color, weight: 4, opacity: 0.85 }})
         .bindPopup(track.popup)
         .addTo(group);
     }});
@@ -604,7 +608,7 @@ def _html_page(data: dict[str, Any], pilot_name: str) -> str:
     overlayLayers[layer.name + ' (' + layer.tracks.length + ')'] = group;
   }});
 
-  L.control.layers(null, overlayLayers, {{ collapsed: false }}).addTo(map);
+  L.control.layers(null, overlayLayers, {{ collapsed: false, position: 'topleft' }}).addTo(map);
 
   // Default: turn on the first layer, leave others off.
   const keys = Object.keys(overlayLayers);

@@ -107,10 +107,13 @@ eine der folgenden Aufteilungen als umschaltbare Layer angeboten:
 
 ## Kartenhintergrund
 
-Die Karte verwendet **Leaflet 1.9.4** und OpenStreetMap-Tiles, die aus dem
-öffentlichen CDN von `unpkg.com` bzw. `tile.openstreetmap.org` geladen werden.
-Eine Internetverbindung ist beim Öffnen der HTML-Datei daher erforderlich,
-sofern der Browser die Tiles noch nicht gecacht hat.
+Die Karte verwendet **Leaflet 1.9.4** und CartoDB Positron-Tiles (heller,
+neutraler Hintergrund), die aus dem öffentlichen CDN von `basemaps.cartocdn.com`
+geladen werden. Die Tiles sind kompatibel mit dem Öffnen der HTML-Datei über
+`file://` im Browser. Eine Internetverbindung ist erforderlich, sofern der
+Browser die Tiles noch nicht gecacht hat.
+
+Die OpenStreetMap-Attribution bleibt erhalten, da CartoDB die OSM-Daten nutzt.
 
 ## Ausgabe-Dateien
 
