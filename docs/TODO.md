@@ -16,6 +16,18 @@ Langfristige Releases und Feature-Zuordnungen sind in [`docs/ROADMAP.md`](./ROAD
 
 ## Aktuell in Arbeit
 
+- [x] Bugfix: `scripts/igc_extractor.py` verwendet `project_root()` korrekt
+  - Fehler: `TypeError: unsupported operand type(s) for /: 'function' and 'str'`
+    nach erfolgreichem `list_flights.py`-Lauf.
+  - Ursache: `common.project_root` ist eine Funktion, wurde aber an mehreren
+    Stellen in `igc_extractor.py` ohne `()` als `Path`-Objekt verwendet.
+  - Fix: Alle Stellen auf `root = project_root()` umgestellt; Parameter
+    `project_root: Path` in `_run_subprocess`, `_run_list_flights`,
+    `_run_download_igc`, `_run_import_flights` in `root: Path` umbenannt.
+  - Dokumentiert in [`docs/notes/igc-extractor-project-root-bugfix-2026-08-18.md`](./notes/igc-extractor-project-root-bugfix-2026-08-18.md).
+  - Validierung: `python3 -m py_compile scripts/igc_extractor.py` und
+    `./scripts/igc_extractor.py --help` erfolgreich.
+
 - [x] Kartenfeature vorbereiten/umsetzen — Teil 1 erledigt
   - Anforderungen dokumentiert in [`docs/notes/flight-map-requirements.md`](./notes/flight-map-requirements.md).
   - Gemeinsames Hilfsmodul `scripts/common.py` angelegt.

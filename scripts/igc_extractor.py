@@ -187,42 +187,42 @@ def _prepare_download_subset(
 def _run_subprocess(
     script_name: str,
     args: list[str],
-    project_root: Path,
+    root: Path,
     logger: logging.Logger,
 ) -> int:
     """Run one of the pipeline scripts via the same Python interpreter."""
-    script_path = project_root / "scripts" / script_name
+    script_path = root / "scripts" / script_name
     cmd = [sys.executable, str(script_path)] + args
     logger.info("Running: %s", " ".join(cmd))
-    result = subprocess.run(cmd, cwd=str(project_root), check=False)
+    result = subprocess.run(cmd, cwd=str(root), check=False)
     logger.info("%s finished with exit code %d", script_name, result.returncode)
     return result.returncode
 
 
 def _run_list_flights(
     parsed: argparse.Namespace,
-    project_root: Path,
+    root: Path,
     logger: logging.Logger,
 ) -> int:
     """Update data/processed/flights.jsonl with all own flights."""
-    flights_jsonl = project_root / "data" / "processed" / "flights.jsonl"
+    flights_jsonl = root / "data" / "processed" / "flights.jsonl"
     args = [
         "--base-url", parsed.base_url,
         "--username", parsed.username or "",
         "--password", parsed.password or "",
         "--output", str(flights_jsonl),
     ]
-    return _run_subprocess("list_flights.py", args, project_root, logger)
+    return _run_subprocess("list_flights.py", args, root, logger)
 
 
 def _run_download_igc(
     parsed: argparse.Namespace,
     flights_jsonl: Path,
-    project_root: Path,
+    root: Path,
     logger: logging.Logger,
 ) -> int:
     """Download IGC files for the subset of flights in batches."""
-    output_dir = project_root / parsed.output_dir
+    output_dir = root / parsed.output_dir
     all_records = read_jsonl(flights_jsonl)
     total = len(all_records)
     if total == 0:
@@ -242,7 +242,7 @@ def _run_download_igc(
         args = [
             "--flights-jsonl", str(flights_jsonl),
             "--output-dir", str(output_dir),
-            "--logs-dir", str(project_root / "data" / "logs"),
+            "--logs-dir", str(root / "data" / "logs"),
             "--base-url", parsed.base_url,
             "--username", parsed.username or "",
             "--password", parsed.password or "",
@@ -251,7 +251,7 @@ def _run_download_igc(
             "--offset", str(start),
             "--limit", str(batch_size),
         ]
-        rc = _run_subprocess("download_igc.py", args, project_root, logger)
+        rc = _run_subprocess("download_igc.py", args, root, logger)
         if rc != 0:
             logger.error("Download batch %d-%d finished with exit code %d", start + 1, end, rc)
             max_rc = rc
@@ -266,21 +266,21 @@ def _run_download_igc(
 def _run_import_flights(
     parsed: argparse.Namespace,
     flights_jsonl: Path,
-    project_root: Path,
+    root: Path,
     logger: logging.Logger,
     run_id: str,
 ) -> int:
     """Import metadata and IGC files into the analysis SQLite database."""
     args = [
         "--flights-jsonl", str(flights_jsonl),
-        "--igc-dir", str(project_root / parsed.output_dir),
-        "--db", str(project_root / "data" / "igc-extractor.db"),
-        "--schema", str(project_root / "data" / "schema.sql"),
-        "--export-dir", str(project_root / "data" / "export"),
-        "--log-dir", str(project_root / "data" / "logs"),
+        "--igc-dir", str(root / parsed.output_dir),
+        "--db", str(root / "data" / "igc-extractor.db"),
+        "--schema", str(root / "data" / "schema.sql"),
+        "--export-dir", str(root / "data" / "export"),
+        "--log-dir", str(root / "data" / "logs"),
         "--run-id", run_id,
     ]
-    return _run_subprocess("import_flights.py", args, project_root, logger)
+    return _run_subprocess("import_flights.py", args, root, logger)
 
 
 def _print_dry_run_preview(
@@ -357,7 +357,7 @@ def main(args: Optional[list[str]] = None) -> int:
         logger.error("Flight list step failed with exit code %d", list_rc)
         return list_rc
 
-    all_flights_path = project_root / "data" / "processed" / "flights.jsonl"
+    all_flights_path = root / "data" / "processed" / "flights.jsonl"
     all_records = read_jsonl(all_flights_path)
     logger.info("Flight list contains %d record(s)", len(all_records))
 
@@ -366,7 +366,7 @@ def main(args: Optional[list[str]] = None) -> int:
         logger.info("Dry run finished, no downloads or imports performed")
         return 0
 
-    subset_path = project_root / "data" / "processed" / "flights_to_download.jsonl"
+    subset_path = root / "data" / "processed" / "flights_to_download.jsonl"
     subset_count = _prepare_download_subset(all_flights_path, parsed.flights, subset_path)
     logger.info(
         "Prepared download subset with %d of %d flight(s) at %s",
@@ -379,11 +379,11 @@ def main(args: Optional[list[str]] = None) -> int:
         print("No flights found to download.")
         return 0
 
-    download_rc = _run_download_igc(parsed, subset_path, project_root, logger)
+    download_rc = _run_download_igc(parsed, subset_path, root, logger)
     if download_rc != 0:
         logger.error("Download step finished with exit code %d", download_rc)
 
-    import_rc = _run_import_flights(parsed, subset_path, project_root, logger, run_id)
+    import_rc = _run_import_flights(parsed, subset_path, root, logger, run_id)
     if import_rc != 0:
         logger.error("Import step finished with exit code %d", import_rc)
 
