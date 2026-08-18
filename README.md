@@ -55,8 +55,8 @@ igc-extractor/
 1. Repository klonen:
 
    ```bash
-   git clone /home/florian/git.vollol.com/fknab/igc-extractor
-   cd /home/florian/git.vollol.com/fknab/igc-extractor
+   git clone ssh://git@localhost:30022/fknab/igc-extractor.git
+   cd igc-extractor
    ```
 
 2. Virtuelles Environment anlegen und Abhängigkeiten installieren:
@@ -91,36 +91,34 @@ igc-extractor/
 
 ## Aufrufbeispiele
 
-> Alle Befehle verwenden absichtlich absolute Pfade und das venv-Python, damit sie aus jedem Verzeichnis heraus direkt ausführbar sind.
-
 ### Hilfe anzeigen
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python /home/florian/git.vollol.com/fknab/igc-extractor/scripts/igc_extractor.py --help
+./scripts/igc_extractor.py --help
 ```
 
 ### Trockenlauf (zeigt, welche Flüge geladen würden)
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python /home/florian/git.vollol.com/fknab/igc-extractor/scripts/igc_extractor.py --flights 10 --dry-run
+./scripts/igc_extractor.py --flights 10 --dry-run
 ```
 
 ### 200 Flüge herunterladen
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python /home/florian/git.vollol.com/fknab/igc-extractor/scripts/igc_extractor.py --flights 200
+./scripts/igc_extractor.py --flights 200
 ```
 
 ### Lauf fortsetzen (bereits vorhandene Flüge überspringen)
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python /home/florian/git.vollol.com/fknab/igc-extractor/scripts/igc_extractor.py --flights 200 --resume
+./scripts/igc_extractor.py --flights 200 --resume
 ```
 
 ### Credentials über die Kommandozeile überschreiben (nur für lokale Tests, nicht in Scripts/Skripten)
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python /home/florian/git.vollol.com/fknab/igc-extractor/scripts/igc_extractor.py \
+./scripts/igc_extractor.py \
   --username "$DHV_XC_USERNAME" \
   --password "$DHV_XC_PASSWORD" \
   --pilot-id 12345 \
@@ -130,8 +128,7 @@ igc-extractor/
 ### Flugliste als JSONL extrahieren
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
-  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/list_flights.py
+./scripts/list_flights.py
 ```
 
 Dieses Skript meldet sich an, liest mit den Filtern *Nur meine Flüge* / *Private
@@ -147,8 +144,7 @@ mit Metadaten und Validierungsstatus in ein ZIP- oder tar.gz-Archiv gepackt
 werden:
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
-  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_igc_zip.py
+./scripts/export_igc_zip.py
 ```
 
 Das Archiv landet unter `data/export/igc_export_<run_id>.zip` (bzw. `*.tar.gz`) und enthält:
@@ -191,8 +187,7 @@ Leaflet-Karte mit allen Tracks, Startplatz-Markern, Popups und einem
 Statistik-Panel erzeugen:
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
-  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_flight_map.py
+./scripts/export_flight_map.py
 ```
 
 Das erzeugt `data/export/flights_map_<run_id>.html` mit OpenStreetMap-Hintergrund.
@@ -218,7 +213,7 @@ Credentials werden in dieser Reihenfolge aufgelöst (erste Treffer gewinnt):
 Nachdem die `.igc`-Dateien und `flights.jsonl` vorliegen (z. B. durch den Downloader erzeugt), werden sie mit `scripts/import_flights.py` in eine SQLite-Datenbank importiert und minimal validiert.
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python /home/florian/git.vollol.com/fknab/igc-extractor/scripts/import_flights.py
+./scripts/import_flights.py
 ```
 
 Standardpfade:
