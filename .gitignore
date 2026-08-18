@@ -42,6 +42,7 @@ data/processed/*.csv
 data/export/*.json
 data/export/*.zip
 data/export/*.tar.gz
+data/export/*.html
 
 # Keep the directory itself
 !data/export/.gitkeep
