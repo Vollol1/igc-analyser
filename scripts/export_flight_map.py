@@ -538,28 +538,34 @@ def _build_map_data(
     for key in ordered_keys:
         layer_flights = grouped[key]
         layer_tracks: list[dict[str, Any]] = []
-        layer_markers: list[dict[str, Any]] = []
         for flight in layer_flights:
             if flight.track:
+                start = flight.track[0]
                 layer_tracks.append({
                     "id": flight.id_flight,
                     "color": flight.category_color,
+                    "category": flight.group_category,
                     "points": _track_points_geojson(flight.track),
                     "popup": flight.popup_html,
-                })
-                start = flight.track[0]
-                layer_markers.append({
-                    "id": flight.id_flight,
-                    "lat": start.latitude,
-                    "lon": start.longitude,
-                    "label": flight.takeoff_location or "Start",
-                    "popup": flight.popup_html,
-                    "color": flight.category_color,
+                    "meta": {
+                        "flightDate": flight.flight_date or "-",
+                        "duration": f"{flight.flight_duration} min"
+                        if flight.flight_duration is not None else "-",
+                        "distance": f"{flight.best_task_distance:.2f} km"
+                        if flight.best_task_distance is not None else "-",
+                        "maxAltitude": f"{flight.max_altitude} m"
+                        if flight.max_altitude is not None else "-",
+                        "takeoff": flight.takeoff_location or "-",
+                        "glider": flight.glider or "-",
+                        "valid": flight.valid or "unknown",
+                        "trackPoints": len(flight.track),
+                        "startLat": round(start.latitude, 6),
+                        "startLon": round(start.longitude, 6),
+                    },
                 })
         layers.append({
             "name": key,
             "tracks": layer_tracks,
-            "markers": layer_markers,
         })
 
     return {
@@ -573,12 +579,12 @@ def _html_page(data: dict[str, Any], pilot_name: str) -> str:
     stats = data["stats"]
     layers = data["layers"]
 
-    # Determine a sensible initial map center from the first marker or default.
+    # Determine a sensible initial map center from the first track start or default.
     center_lat, center_lon, has_center = 51.1657, 10.4515, False
     for layer in layers:
-        if layer["markers"]:
-            center_lat = layer["markers"][0]["lat"]
-            center_lon = layer["markers"][0]["lon"]
+        if layer["tracks"]:
+            start = layer["tracks"][0]["points"][0]
+            center_lat, center_lon = start[1], start[0]
             has_center = True
             break
 
@@ -623,7 +629,7 @@ def _html_page(data: dict[str, Any], pilot_name: str) -> str:
   #map {{ height: 100%; width: 100%; }}
   .stats-panel {{
     position: absolute;
-    top: 10px;
+    top: 48px;
     right: 10px;
     z-index: 1000;
     background: rgba(255, 255, 255, 0.98);
@@ -647,12 +653,89 @@ def _html_page(data: dict[str, Any], pilot_name: str) -> str:
   .flight-popup td {{ color: #111827; padding-bottom: 4px; }}
   .leaflet-control-layers {{ z-index: 1001 !important; }}
   .leaflet-control-layers-expanded {{ background: rgba(255, 255, 255, 0.95); }}
+  .stats-panel-toggle {{
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1002;
+    background: rgba(255, 255, 255, 0.98);
+    border: 2px solid rgba(0,0,0,0.2);
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transition: background 0.2s;
+  }}
+  .stats-panel-toggle:hover {{ background: rgba(240, 240, 240, 0.98); }}
+  .stats-panel.collapsed {{ display: none; }}
+  .flight-info-panel {{
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    padding: 16px 20px;
+    max-width: 600px;
+    min-width: 300px;
+    font-size: 13px;
+    display: none;
+  }}
+  .flight-info-panel.visible {{ display: block; }}
+  .flight-info-panel h3 {{ margin: 0 0 12px; font-size: 16px; color: #111827; }}
+  .flight-info-panel .info-grid {{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px 16px;
+  }}
+  .flight-info-panel .info-item {{ display: flex; flex-direction: column; }}
+  .flight-info-panel .info-label {{ font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }}
+  .flight-info-panel .info-value {{ font-size: 14px; color: #111827; font-weight: 500; }}
+  .flight-info-panel .close-btn {{
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 0;
+    line-height: 1;
+  }}
+  .flight-info-panel .close-btn:hover {{ color: #111827; }}
+  .flight-info-panel h3 .category-badge {{
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    vertical-align: middle;
+  }}
+  .flight-info-panel .info-grid.three-col {{
+    grid-template-columns: repeat(3, 1fr);
+  }}
+  @media (max-width: 640px) {{
+    .stats-panel {{ top: 48px; left: 10px; right: 10px; max-width: none; }}
+    .flight-info-panel {{ left: 10px; right: 10px; transform: none; min-width: auto; max-width: none; }}
+    .flight-info-panel .info-grid,
+    .flight-info-panel .info-grid.three-col {{ grid-template-columns: repeat(2, 1fr); }}
+  }}
 </style>
 </head>"""
 
     body_top = f"""<body>
 <div id="map"></div>
-<div class="stats-panel">
+<button class="stats-panel-toggle" id="statsToggle" title="Statistik ein-/ausblenden">📊 Statistik</button>
+<div class="stats-panel" id="statsPanel">
   <h1>IGC-Flugkarte</h1>
   <p style="margin:0 0 10px; color:#4b5563;">Pilot: {html.escape(pilot_name)}</p>
 
@@ -695,27 +778,87 @@ def _html_page(data: dict[str, Any], pilot_name: str) -> str:
   const layersData = {layers_json};
   const overlayLayers = {{}};
 
+  const allTrackLayers = [];
+  let selectedPolyline = null;
+
+  function updateLineWeights() {{
+    const zoom = map.getZoom();
+    // Thin lines at low zoom, slightly thicker when zoomed in.
+    let weight;
+    if (zoom <= 9) weight = 1.4;
+    else if (zoom <= 12) weight = 2.2;
+    else if (zoom <= 15) weight = 3.5;
+    else weight = 5;
+    allTrackLayers.forEach(obj => {{
+      if (obj.polyline === selectedPolyline) return;
+      obj.polyline.setStyle({{ weight: weight, opacity: 0.85 }});
+    }});
+  }}
+
+  function highlightFlight(obj) {{
+    if (selectedPolyline) {{
+      const prev = allTrackLayers.find(o => o.polyline === selectedPolyline);
+      if (prev) {{
+        selectedPolyline.setStyle({{ color: prev.color, weight: 2, opacity: 0.85, dashArray: null }});
+        if (prev.marker) prev.marker.setStyle({{ radius: 4, weight: 1 }});
+      }}
+    }}
+    selectedPolyline = obj.polyline;
+    obj.polyline.setStyle({{ color: '#facc15', weight: 6, opacity: 1.0, dashArray: '4, 8' }});
+    obj.polyline.bringToFront();
+    if (obj.marker) obj.marker.setStyle({{ radius: 8, weight: 3, color: '#facc15', fillColor: '#facc15' }});
+    showFlightInfo(obj.track);
+  }}
+
+  function clearHighlight() {{
+    if (selectedPolyline) {{
+      const obj = allTrackLayers.find(o => o.polyline === selectedPolyline);
+      if (obj) {{
+        obj.polyline.setStyle({{ color: obj.color, weight: 2, opacity: 0.85, dashArray: null }});
+        if (obj.marker) obj.marker.setStyle({{ radius: 4, weight: 1, color: obj.color, fillColor: obj.color }});
+      }}
+      selectedPolyline = null;
+    }}
+    hideFlightInfo();
+  }}
+
   layersData.forEach(layer => {{
     const group = L.layerGroup();
 
     layer.tracks.forEach(track => {{
       const points = track.points.map(p => [p[1], p[0]]);
-      L.polyline(points, {{ color: track.color, weight: 5, opacity: 0.9 }})
+      const polyline = L.polyline(points, {{ color: track.color, weight: 2, opacity: 0.85 }})
         .bindPopup(track.popup)
         .addTo(group);
-    }});
 
-    layer.markers.forEach(marker => {{
-      L.circleMarker([marker.lat, marker.lon], {{
-        radius: 3,
-        color: marker.color,
-        fillColor: marker.color,
-        fillOpacity: 0.7,
+      const startPoint = points[0];
+      const marker = L.circleMarker(startPoint, {{
+        radius: 4,
+        color: track.color,
+        fillColor: track.color,
+        fillOpacity: 0.85,
         weight: 1,
       }})
-        .bindPopup(marker.popup)
-        .bindTooltip(marker.label, {{ permanent: false, direction: 'top' }})
+        .bindPopup(track.popup)
+        .bindTooltip(track.meta.takeoff || 'Start', {{ permanent: false, direction: 'top' }})
         .addTo(group);
+
+      const trackObj = {{ track: track, polyline: polyline, marker: marker, color: track.color }};
+      allTrackLayers.push(trackObj);
+
+      const select = () => highlightFlight(trackObj);
+      polyline.on('click', select);
+      marker.on('click', select);
+      polyline.on('mouseover', e => {{
+        if (selectedPolyline !== polyline) {{
+          polyline.setStyle({{ weight: 4, opacity: 1.0 }});
+        }}
+      }});
+      polyline.on('mouseout', e => {{
+        if (selectedPolyline !== polyline) {{
+          updateLineWeights();
+        }}
+      }});
     }});
 
     overlayLayers[layer.name + ' (' + layer.tracks.length + ')'] = group;
@@ -734,8 +877,78 @@ def _html_page(data: dict[str, Any], pilot_name: str) -> str:
   if (allPoints.length > 0) {{
     map.fitBounds(allPoints, {{ padding: [20, 20], maxZoom: 14 }});
   }}
+
+  map.on('zoomend', updateLineWeights);
+  updateLineWeights();
+
+  // Statistics panel toggle.
+  const statsPanel = document.getElementById('statsPanel');
+  const statsToggle = document.getElementById('statsToggle');
+  if (statsToggle && statsPanel) {{
+    let panelVisible = true;
+    statsToggle.addEventListener('click', () => {{
+      panelVisible = !panelVisible;
+      statsPanel.classList.toggle('collapsed', !panelVisible);
+      statsToggle.textContent = panelVisible ? '📊 Statistik' : '📊 Statistik';
+    }});
+  }}
+
+  // Flight info panel handling.
+  const infoPanel = document.createElement('div');
+  infoPanel.className = 'flight-info-panel';
+  infoPanel.innerHTML = `
+    <button class="close-btn" aria-label="Schließen">&times;</button>
+    <h3>Flug <span id="infoFlightId"></span><span class="category-badge" id="infoCategory"></span></h3>
+    <div class="info-grid three-col" id="infoGrid"></div>
+  `;
+  document.body.appendChild(infoPanel);
+
+  function escapeHtml(text) {{
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }}
+
+  function infoItem(label, value) {{
+    return `<div class="info-item"><span class="info-label">${{escapeHtml(label)}}</span><span class="info-value">${{escapeHtml(String(value ?? '-'))}}</span></div>`;
+  }}
+
+  function showFlightInfo(track) {{
+    const meta = track.meta || {{}};
+    const idSpan = infoPanel.querySelector('#infoFlightId');
+    const catSpan = infoPanel.querySelector('#infoCategory');
+    const grid = infoPanel.querySelector('#infoGrid');
+    if (idSpan) idSpan.textContent = `#${{track.id}}`;
+    if (catSpan) {{
+      catSpan.textContent = track.category || '';
+      catSpan.style.backgroundColor = track.color || '#6b7280';
+    }}
+    grid.innerHTML = [
+      infoItem('Datum', meta.flightDate),
+      infoItem('Dauer', meta.duration),
+      infoItem('Distanz', meta.distance),
+      infoItem('max. Höhe', meta.maxAltitude),
+      infoItem('Startplatz', meta.takeoff),
+      infoItem('Gleitschirm', meta.glider),
+      infoItem('Status', meta.valid),
+      infoItem('Track-Punkte', meta.trackPoints),
+      infoItem('Start-Koordinaten', `${{meta.startLat}}, ${{meta.startLon}}`),
+    ].join('');
+    infoPanel.classList.add('visible');
+  }}
+
+  function hideFlightInfo() {{
+    infoPanel.classList.remove('visible');
+  }}
+
+  infoPanel.querySelector('.close-btn').addEventListener('click', hideFlightInfo);
+  map.on('click', e => {{
+    // Click on map background clears the selection.
+    if (!e.originalEvent || !e.originalEvent.target.closest('.leaflet-overlay-pane, .leaflet-popup-pane, .flight-info-panel')) {{
+      clearHighlight();
+    }}
+  }});
 </script>
-</body>
 </html>"""
 
     return head + "\n" + body_top + "\n" + script
