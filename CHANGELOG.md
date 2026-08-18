@@ -90,7 +90,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 288 IGC files downloaded to `data/igc/`.
 - 287 valid, 1 invalid (missing G-Record), 0 missing.
 
-[0.3.0]: https://github.com/Vollol1/igc-extractor/releases/tag/v0.3.0
-[0.2.1]: https://github.com/Vollol1/igc-extractor/releases/tag/v0.2.1
-[0.2.0]: https://github.com/Vollol1/igc-extractor/releases/tag/v0.2.0
-[0.1.0]: https://github.com/Vollol1/igc-extractor/releases/tag/v0.1.0
+[0.3.0]: ../igc-extractor/releases/tag/v0.3.0
+[0.2.1]: ../igc-extractor/releases/tag/v0.2.1
+[0.2.0]: ../Vollol1/igc-extractor/releases/tag/v0.2.0
+[0.1.0]: ../igc-extractor/releases/tag/v0.1.0
