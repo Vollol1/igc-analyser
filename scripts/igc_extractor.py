@@ -51,8 +51,8 @@ def _parse_args(args: Optional[list[str]] = None) -> argparse.Namespace:
     parser.add_argument(
         "--flights",
         type=int,
-        default=200,
-        help="Number of flights to download (default: 200).",
+        default=None,
+        help="Number of flights to download. If omitted, all flights from the JSONL are processed.",
     )
     parser.add_argument(
         "--output-dir",
@@ -166,18 +166,19 @@ def _setup_logging(run_id: str, logs_dir: Path) -> Path:
 
 def _prepare_download_subset(
     all_flights_path: Path,
-    limit: int,
+    limit: Optional[int],
     subset_path: Path,
 ) -> int:
     """
-    Read the full flight list, keep the ``limit`` newest flights, enrich each
-    record with ``IgcFilename`` (so import_flights.py can locate the file),
-    and write a subset JSONL for the download/import steps.
+    Read the full flight list, keep the ``limit`` newest flights (or all if
+    ``limit`` is None), enrich each record with ``IgcFilename`` (so
+    import_flights.py can locate the file), and write a subset JSONL for the
+    download/import steps.
     """
     all_records = read_jsonl(all_flights_path)
     if not all_records:
         return 0
-    subset = all_records[:limit]
+    subset = all_records[:limit] if limit is not None else all_records
     for record in subset:
         record["IgcFilename"] = _igc_filename(record)
     write_jsonl(subset_path, subset)
@@ -285,13 +286,14 @@ def _run_import_flights(
 
 def _print_dry_run_preview(
     all_records: list[dict[str, Any]],
-    limit: int,
+    limit: Optional[int],
     output_dir: Path,
 ) -> None:
     """Show what a real run would do without touching downloads/imports."""
     total = len(all_records)
-    subset = all_records[:limit]
-    print(f"\nDry-run preview ({len(subset)} of {total} flights would be processed):\n")
+    subset = all_records[:limit] if limit is not None else all_records
+    scope = f"{len(subset)} of {total}" if limit is not None else f"all {total}"
+    print(f"\nDry-run preview ({scope} flights would be processed):\n")
     for idx, record in enumerate(subset, start=1):
         print(
             f"  {idx}. Flight {record.get('IDFlight')} "
@@ -332,7 +334,8 @@ def main(args: Optional[list[str]] = None) -> int:
     logger.info("base_url:   %s", parsed.base_url)
     logger.info("username:   %s", username)
     logger.info("pilot_id:   %s", parsed.pilot_id)
-    logger.info("flights:    %d", parsed.flights)
+    flights_label = parsed.flights if parsed.flights is not None else "all"
+    logger.info("flights:    %s", flights_label)
     logger.info("output_dir: %s", output_dir)
     logger.info("state_db:   %s", state_db)
     logger.info("resume:     %s", parsed.resume)
@@ -344,7 +347,7 @@ def main(args: Optional[list[str]] = None) -> int:
     print(f"  base_url:   {parsed.base_url}")
     print(f"  username:   {username}")
     print(f"  pilot_id:   {parsed.pilot_id}")
-    print(f"  flights:    {parsed.flights}")
+    print(f"  flights:    {flights_label}")
     print(f"  output_dir: {output_dir}")
     print(f"  state_db:   {state_db}")
     print(f"  resume:     {parsed.resume}")

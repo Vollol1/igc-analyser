@@ -37,6 +37,17 @@ Langfristige Releases und Feature-Zuordnungen sind in [`docs/ROADMAP.md`](./ROAD
   - Refactoring dokumentiert in [`docs/notes/common-refactoring.md`](./notes/common-refactoring.md).
   - Nächster Schritt: `scripts/export_flight_map.py` implementieren.
 
+- [x] Default-Limit von `--flights` in `scripts/igc_extractor.py` entfernen
+  - Problem: Default `200` führte dazu, dass bei 306 Flügen nur 200 verarbeitet
+    wurden; 106 ältere Flüge wurden ignoriert.
+  - Lösung: `--flights` hat jetzt default `None`, d. h. alle Flüge in
+    `data/processed/flights.jsonl` werden verarbeitet. Ein Limit muss explizit
+    mit `--flights N` gesetzt werden.
+  - `_prepare_download_subset` und `_print_dry_run_preview` behandeln `limit=None`
+    korrekt.
+  - `README.md` und `docs/runbooks/download-igc.md` dokumentieren das neue
+    Default-Verhalten und explizite Limits.
+
 ## Erledigt
 
 - [x] v0.2.1 Patch-Release

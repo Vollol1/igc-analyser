@@ -1,6 +1,6 @@
 # igc-extractor
 
-Ein schlankes Python-CLI-Tool zum Herunterladen von Paragliding-Flugtracks im IGC-Format von [dhv-xc.de](https://www.dhv-xc.de). Es wurde entwickelt, um beispielsweise die neuesten 200 Flüge eines Piloten lokal, idempotent und reproduzierbar zu extrahieren, ohne externe Cloud-Dienste zu benötigen.
+Ein schlankes Python-CLI-Tool zum Herunterladen von Paragliding-Flugtracks im IGC-Format von [dhv-xc.de](https://www.dhv-xc.de). Es wurde entwickelt, um die Flüge eines Piloten lokal, idempotent und reproduzierbar zu extrahieren, ohne externe Cloud-Dienste zu benötigen. Standardmäßig werden alle in `data/processed/flights.jsonl` vorhandenen Flüge verarbeitet; ein explizites Limit kann über `--flights N` gesetzt werden.
 
 ## Zweck
 
@@ -103,13 +103,29 @@ igc-extractor/
 ./scripts/igc_extractor.py --flights 10 --dry-run
 ```
 
-### 200 Flüge herunterladen
+### Alle Flüge herunterladen (Default)
+
+Ohne `--flights` verarbeitet `igc_extractor.py` alle in `data/processed/flights.jsonl` vorhandenen Flüge:
+
+```bash
+./scripts/igc_extractor.py
+```
+
+### Nur die neuesten N Flüge herunterladen
+
+Das Limit bezieht sich immer auf die neuesten N Flüge der JSONL:
 
 ```bash
 ./scripts/igc_extractor.py --flights 200
 ```
 
 ### Lauf fortsetzen (bereits vorhandene Flüge überspringen)
+
+```bash
+./scripts/igc_extractor.py --resume
+```
+
+Mit explizitem Limit:
 
 ```bash
 ./scripts/igc_extractor.py --flights 200 --resume

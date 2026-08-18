@@ -62,7 +62,7 @@ Dieser Schritt ist Voraussetzung für `download_igc.py`. Er schreibt die Felder
 
 ## 3. IGC-Dateien herunterladen
 
-### 3.1 Erstladen
+### 3.1 Erstladen (alle Flüge)
 
 ```bash
 /home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
@@ -71,10 +71,15 @@ Dieser Schritt ist Voraussetzung für `download_igc.py`. Er schreibt die Felder
 
 - Liest `data/processed/flights.jsonl`.
 - Meldet sich mit demselben Session-/CSRF-Login wie `list_flights.py` an.
-- Lädt jede `.igc`-Datei seriell über `/flight/{IDFlight}/igc` herunter.
+- Lädt **alle** `.igc`-Dateien seriell über `/flight/{IDFlight}/igc` herunter.
 - Speichert `.igc`-Dateien in `data/igc/`.
 - Protokolliert den Lauf nach `data/logs/download_igc_<run_id>.log`.
 - Schreibt ein Summary nach `data/logs/download_igc_summary_<run_id>.json`.
+
+> **Hinweis:** `download_igc.py` hat kein eigenes Limit. Wenn nur eine Teilmenge
+> verarbeitet werden soll, muss `--limit N` explizit gesetzt werden. Das
+> übergeordnete `scripts/igc_extractor.py` verwendet standardmäßig ebenfalls alle
+> Flüge; ein Limit wird dort mit `--flights N` gesetzt.
 
 ### 3.2 Lauf fortsetzen / einschränken
 
