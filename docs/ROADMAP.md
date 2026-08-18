@@ -87,36 +87,38 @@ v0.2.0 liefert nun einen praxistauglichen Export inkl. menschen- und maschinenle
 
 ---
 
-## v0.3.0 — Interaktive IGC-Flugkarte
+## v0.3.0 — Interaktive IGC-Flugkarte (released 2026-08-18)
 
 **Ziel:** Aus den lokalen IGC-Flugdaten eine eigenständige, interaktive HTML-Karte erzeugen, die Startplätze,
 Flugtrajektorien und Statistiken darstellt und direkt im Browser nutzbar ist.
 
-### Geplante Änderungen
+### Released Changes
 
-- [-] Neues Skript `scripts/export_flight_map.py`
+- [x] Neues Skript `scripts/export_flight_map.py`
   - Liest `data/processed/flights.jsonl` und die zugehörigen IGC-Dateien aus `data/igc/`.
   - Parst B-Records (Breite, Länge, Höhe) aus den IGC-Dateien.
-  - Erzeugt eine Leaflet-basierte HTML-Karte mit OpenStreetMap-Hintergrund.
-- [-] Karteninhalte
-  - Tracks als Polylinien, Startplatz-Marker, interaktive Popups mit Flugdetails.
-  - Statistik-Panel mit Fluganzahl, Zeitraum, Gesamtflugzeit, XC-Distanz, bestem Flug, Startplatzanzahl, Gleitschirm-Anzahl und valid/invalid/missing-Status.
-- [-] Umschaltbare Layer-Gruppen
-  - **Kategorie** (Default): Lokal / XC / Höhenflug.
-  - **Startplatz**, **Flugjahr** und **Gleitschirm** als zusätzliche umschaltbare Layer.
-- [-] Output-Dateien
+  - Erzeugt eine Leaflet-basierte HTML-Karte mit CartoDB Positron-Hintergrund.
+- [x] Karteninhalte
+  - Tracks als farbige Polylinien, kategorisiert nach XC / Höhenflug / Lokal.
+  - Startplatz-Marker mit Tooltips und Popups.
+  - Statistik-Panel mit Fluganzahl, Zeitraum, Gesamtflugzeit, XC-Distanz, bestem Flug, Startplätzen, Gleitschirmen und Validierungsstatus.
+  - Zoom-abhängige Linienstärke (1.4–5) für bessere Sichtbarkeit.
+  - Ein-/ausklappbares Statistik-Panel mit Toggle-Button.
+  - Flug-Highlighting bei Klick/Hover mit separatem Info-Panel für Meta-Infos.
+  - Outlier-Erkennung filtert fehlerhafte Koordinaten und markiert betroffene Flüge.
+- [x] Umschaltbare Layer-Gruppen
+  - **Kategorie** (Default): XC / Höhenflug / Lokal.
+  - **Startplatz**, **Flugjahr**, **Gleitschirm** als zusätzliche Layer.
+- [x] Output-Dateien
   - `data/export/flights_map_<run_id>.html`
   - `data/logs/export_flight_map_<run_id>.log`
   - `data/logs/export_flight_map_summary_<run_id>.json`
+- [x] Bugfix: `--flights` Default in `igc_extractor.py` von 200 auf None geändert
 
-### Iterationen (ohne harte Versionszuordnung)
+### Bekannte Einschränkungen
 
-Die folgenden Erweiterungen werden als offene Iterationskette verfolgt:
-
-- Basis-Karte mit Kategorie-Layer.
-- Zusätzliche Gruppierungen (Startplatz, Flugjahr, Gleitschirm).
-- Statischer SVG/PNG-Export der Karte für Berichte oder Druck.
-- Spätere 3D-Ansicht der Tracks; bei Umsetzung potenziell ein eigenes Minor-Release.
+- 106 von 306 Flügen hatten zum Release-Zeitpunkt keine lokale IGC-Datei. Nach Ausführen von `./scripts/igc_extractor.py` werden alle fehlenden IGCs nachgeladen.
+- 6 Flüge enthielten outlier-Punkte (insgesamt 83), die automatisch gefiltert werden.
 
 ### Motivation
 
@@ -126,9 +128,9 @@ und dient gleichzeitig als persönliche Flugretrospektive.
 
 ### Technische Hinweise
 
-- Leaflet + OpenStreetMap; reine Python-Generierung, kein Web-Backend nötig.
-- B-Record-Parser soll wiederverwendbar sein.
-- 3D wird vorgemerkt, aber nicht Teil von v0.3.0.
+- Leaflet + CartoDB Positron; reine Python-Generierung, kein Web-Backend nötig.
+- B-Record-Parser und Outlier-Filter in `export_flight_map.py` implementiert.
+- 3D-Ansicht vorgemerkt für spätere Releases.
 
 ---
 

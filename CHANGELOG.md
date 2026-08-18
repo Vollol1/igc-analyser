@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-08-18
+
+### Added
+- `scripts/export_flight_map.py` — Interaktive Leaflet-Karte zur Visualisierung aller importierten Flüge:
+  - Flugtracks als farbige Polylinien, kategorisiert nach XC / Höhenflug / Lokal.
+  - Startplatz-Marker mit Tooltips und Popups.
+  - Statistik-Panel mit Fluganzahl, Zeitraum, Gesamtflugzeit, XC-Distanz, bestem Flug, Startplätzen, Gleitschirmen und Validierungsstatus.
+  - Zusätzliche Layer-Gruppen: Startplatz, Flugjahr, Gleitschirm.
+  - Zoom-abhängige Linienstärke für bessere Sichtbarkeit bei jedem Zoom-Level.
+  - Ein-/ausklappbares Statistik-Panel mit Toggle-Button.
+  - Flug-Highlighting: Klick/Hover auf Tracks zeigt Meta-Infos (Datum, Distanz, Dauer, max. Höhe, Startplatz, Gleitschirm, Status) in einem separaten Info-Panel.
+  - Outlier-Erkennung filtert fehlerhafte B-Records (z. B. 0,0-Koordinaten, Sprünge > 100 km) und markiert betroffene Flüge im Popup.
+  - Ausgabe: `data/export/flights_map_<run_id>.html` mit Log und JSON-Summary unter `data/logs/`.
+- `docs/notes/flight-map-requirements.md` — Anforderungen und Design-Entscheidungen für die Kartenvisualisierung.
+- `docs/notes/session-status-2026-08-18.md` — Session-Notizen zu Kartenfeature-Iterationen und Bugfixes.
+
+### Changed
+- `scripts/export_flight_map.py` verwendet zoom-abhängige Linienstärke (1.4–5) statt fester Stärke.
+- Kategorie-Zählung im Statistik-Panel basiert nur auf Flügen mit vorhandenem Track (konsistent mit Layer-Control).
+- Marker-Design dezenter angepasst (Radius 3, fillOpacity 0.7) für bessere Track-Sichtbarkeit.
+
+### Fixed
+- Bugfix: `--flights` Parameter in `scripts/igc_extractor.py` hat standardmäßig nur 200 Flüge verarbeitet. Default ist jetzt `None` (alle Flüge). Explizites Limit muss mit `--flights N` gesetzt werden.
+- Tile-Layer von OpenStreetMap auf CartoDB Positron gewechselt (vermeidet 403-Fehler bei `file://`-Nutzung).
+- Statistik-Panel ist jetzt scrollbar (`max-height: 50vh`) und überlappt nicht mehr den Viewport.
+- Layer-Control nach links oben verschoben und z-Index erhöht, um Überlappungen zu vermeiden.
+
+### Notes
+- 106 von 306 Flügen hatten zum Zeitpunkt der Entwicklung keine lokale IGC-Datei. Nach Ausführen von `./scripts/igc_extractor.py` (mit neuem Default ohne Limit) werden alle fehlenden IGCs nachgeladen.
+- 6 Flüge enthielten outlier-Punkte (insgesamt 83), die automatisch gefiltert und im Popup markiert werden.
+
 ## [0.2.1] - 2026-08-17
 
 ### Fixed
@@ -59,6 +90,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 288 IGC files downloaded to `data/igc/`.
 - 287 valid, 1 invalid (missing G-Record), 0 missing.
 
+[0.3.0]: https://github.com/Vollol1/igc-extractor/releases/tag/v0.3.0
 [0.2.1]: https://github.com/Vollol1/igc-extractor/releases/tag/v0.2.1
 [0.2.0]: https://github.com/Vollol1/igc-extractor/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Vollol1/igc-extractor/releases/tag/v0.1.0
