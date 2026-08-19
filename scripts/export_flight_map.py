@@ -40,6 +40,7 @@ from common import (
     to_float,
     to_int,
 )
+from dhv_xc_client import load_dotenv_if_available
 
 
 DEFAULT_FLIGHTS_JSONL = Path("data/processed/flights.jsonl")
@@ -972,6 +973,7 @@ def _parse_args(args: Optional[list[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="export-flight-map",
         description="Generate an interactive Leaflet map of imported IGC flights.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
         "--flights-jsonl",
@@ -1040,6 +1042,7 @@ def _resolve_paths(parsed: argparse.Namespace) -> tuple[Path, Path, Path, Path, 
 
 
 def main(args: Optional[list[str]] = None) -> int:
+    load_dotenv_if_available()
     parsed = _parse_args(args)
     flights_jsonl, igc_dir, output_dir, db, log_dir = _resolve_paths(parsed)
 

@@ -35,6 +35,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from common import read_jsonl, sanitize_filename, to_float, to_int
+from dhv_xc_client import load_dotenv_if_available
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import getSampleStyleSheet
@@ -651,6 +652,7 @@ def _parse_args(args: Optional[list[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="export-igc-zip",
         description="Export local IGC files into a structured archive.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
         "--output-dir",
@@ -726,6 +728,7 @@ def _resolve_paths(parsed: argparse.Namespace) -> tuple[Path, Path, Path, Path, 
 
 
 def main(args: Optional[list[str]] = None) -> int:
+    load_dotenv_if_available()
     parsed = _parse_args(args)
 
     output_dir, igc_dir, flights_jsonl, db, log_dir = _resolve_paths(parsed)
