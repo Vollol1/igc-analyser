@@ -16,6 +16,13 @@ Langfristige Releases und Feature-Zuordnungen sind in [`docs/ROADMAP.md`](./ROAD
 
 ## Aktuell in Arbeit
 
+- [x] Öffentlicher GitHub-Release vorbereiten: ADR-003 + Legal Notes + README/Tool-Disclaimer
+  - Recherche der öffentlichen dhv-xc.de-Quellen (`Nutzungsvereinbarung`, `Release-Informationen`).
+  - Dokumentation in [`docs/notes/legal-release-notes.md`](./notes/legal-release-notes.md).
+  - Architekturentscheidung in [`docs/decisions/ADR-003-public-release-dhv-xc.md`](./decisions/ADR-003-public-release-dhv-xc.md).
+  - Vorgeschlagene Disclaimer-Texte für README und Tool-Output in ADR-003 und Legal Notes hinterlegt.
+  - Nächster Schritt (Code): Disclaimer-Texte in `README.md` und Tool-Outputs übernehmen; Default `--pilot-name` neutralisieren.
+
 - [x] Bugfix: `scripts/igc_extractor.py` verwendet `project_root()` korrekt
   - Fehler: `TypeError: unsupported operand type(s) for /: 'function' and 'str'`
     nach erfolgreichem `list_flights.py`-Lauf.

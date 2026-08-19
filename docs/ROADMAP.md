@@ -19,8 +19,13 @@ Die Roadmap wird bei jedem größeren Feature oder Release aktualisiert.
 
 Dieser Abschnitt sammelt Änderungen, die noch keinem Release zugeordnet sind, aber bereits fest eingeplant oder in Arbeit.
 
-### Hauptthema: Testsuite, Robustheit und Datenqualität
+### Hauptthema: Öffentliches Release, Testsuite, Robustheit und Datenqualität
 
+- Öffentlicher GitHub-Release vorbereiten
+  - Brand-neutrale Kommunikation und deutlicher Disclaimer (siehe [ADR-003](./decisions/ADR-003-public-release-dhv-xc.md) und [`docs/notes/legal-release-notes.md`](./notes/legal-release-notes.md)).
+  - README.md mit Hinweis zur Nutzung auf eigene Gefahr und möglichem Account-Bann ergänzen.
+  - Tool-Outputs (`scripts/igc_extractor.py`, `scripts/list_flights.py`) mit kurzem Disclaimer-Hinweis versehen.
+  - Default `--pilot-name` / `--sender` neutralisieren, damit keine persönlichen Namen im Code oder generierten Archiven verbleiben.
 - Testsuite aufbauen (`tests/`)
   - Unit-Tests für IGC-Validierung, Dateinamensgenerierung, Hash-Bildung.
   - Integrationstest mit lokalen Mock-IGC-Dateien ohne Netzwerk.
