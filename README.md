@@ -130,11 +130,12 @@ igc-extractor/
    DHV_XC_PASSWORD=dein_passwort
 
    # Optional
+   # PILOT_NAME=Florian Fliege
    # DHV_XC_BASE_URL=https://www.dhv-xc.de
    # DHV_XC_PILOT_ID=12345
    ```
 
-   > **Wichtig:** `.env` enthält echte Credentials und darf **niemals** in Git committet werden. Siehe [ADR-001](docs/decisions/ADR-001-architecture-techstack.md) und das Vorbild-Projekt [gag-atlas ADR-007](https://github.com/Vollol1/gag-atlas/blob/main/docs/decisions/ADR-007-secrets-management.md).
+   > **Wichtig:** `.env` enthält echte Credentials und darf **niemals** in Git committet werden.
 
 ## Schnellstart / Standard-Workflow
 
