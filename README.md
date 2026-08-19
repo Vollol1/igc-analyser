@@ -96,7 +96,7 @@ igc-extractor/
 1. Repository klonen:
 
    ```bash
-   git clone https://github.com/fknab/igc-analyser.git
+   git clone https://github.com/Vollol1/igc-analyser.git
    cd igc-analyser
    ```
 
