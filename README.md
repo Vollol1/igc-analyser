@@ -10,6 +10,7 @@ Ein schlankes Python-CLI-Tool zum persönlichen Herunterladen von Paragliding-Fl
 - [Zweck](#zweck)
 - [Ordnerstruktur](#ordnerstruktur)
 - [Installation](#installation)
+- [Schnellstart / Standard-Workflow](#schnellstart--standard-workflow)
 - [Aufrufbeispiele](#aufrufbeispiele)
   - [Hilfe anzeigen](#hilfe-anzeigen)
   - [Trockenlauf](#trockenlauf)
@@ -134,6 +135,36 @@ igc-extractor/
    ```
 
    > **Wichtig:** `.env` enthält echte Credentials und darf **niemals** in Git committet werden. Siehe [ADR-001](docs/decisions/ADR-001-architecture-techstack.md) und das Vorbild-Projekt [gag-atlas ADR-007](https://github.com/Vollol1/gag-atlas/blob/main/docs/decisions/ADR-007-secrets-management.md).
+
+## Schnellstart / Standard-Workflow
+
+Nach der [Installation](#installation) genügen vier Schritte, um Flüge herunterzuladen, zu exportieren und interaktiv zu betrachten:
+
+1. **Flüge herunterladen und importieren**
+
+   ```bash
+   ./scripts/igc_extractor.py
+   ```
+
+2. **IGC-Dateien als ZIP exportieren**
+
+   ```bash
+   ./scripts/export_igc_zip.py
+   ```
+
+3. **Interaktive Karte exportieren**
+
+   ```bash
+   ./scripts/export_flight_map.py
+   ```
+
+4. **Lokaler Webserver für die Karte starten**
+
+   ```bash
+   cd data/export && python3 -m http.server 8000
+   ```
+
+   Anschließend ist die Karte unter `http://localhost:8000/flights_map_<run_id>.html` erreichbar.
 
 ## Aufrufbeispiele
 
