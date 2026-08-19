@@ -47,7 +47,7 @@ share.
 
 ### Full changelog
 
-See [CHANGELOG.md](https://github.com/fknab/igc-analyser/blob/main/CHANGELOG.md).
+See [CHANGELOG.md](https://github.com/Vollol1/igc-analyser/blob/main/CHANGELOG.md).
 
 ### Compatibility
 

@@ -138,7 +138,7 @@ und lädst das Repository herunter.
 
 ```bash
 cd ~
-git clone https://github.com/fknab/igc-analyser.git
+git clone https://github.com/Vollol1/igc-analyser.git
 cd igc-analyser
 ```
 
