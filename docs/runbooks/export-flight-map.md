@@ -11,12 +11,12 @@ eigenständige HTML-Datei, die direkt im Browser geöffnet werden kann.
   `scripts/download_igc.py` oder `scripts/igc_extractor.py`).
 * Optional: `data/igc-extractor.db` enthält den strukturellen Validierungsstatus
   (wird durch `scripts/import_flights.py` angelegt).
+* Das virtuelle Environment ist aktiviert (siehe [Quick Start](../quickstart.md)).
 
 ## Standard-Aufruf
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
-  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_flight_map.py
+python scripts/export_flight_map.py
 ```
 
 Ohne weitere Parameter werden folgende Defaults verwendet:
@@ -28,39 +28,32 @@ Ohne weitere Parameter werden folgende Defaults verwendet:
 * Log: `data/logs/export_flight_map_<run_id>.log`
 * Summary: `data/logs/export_flight_map_summary_<run_id>.json`
 * Gruppierung: `category` (Kategorie-Layer)
-* Pilotenname: `Florian Knab`
+* Pilotenname: neutraler Platzhalter; mit `--pilot-name` setzen
 
 ## Aufrufbeispiele
 
 ### Gruppierung nach Startplatz
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
-  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_flight_map.py \
-  --group-by takeoff
+python scripts/export_flight_map.py --group-by takeoff
 ```
 
 ### Gruppierung nach Flugjahr
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
-  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_flight_map.py \
-  --group-by year
+python scripts/export_flight_map.py --group-by year
 ```
 
 ### Gruppierung nach Gleitschirm
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
-  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_flight_map.py \
-  --group-by glider
+python scripts/export_flight_map.py --group-by glider
 ```
 
 ### Explizite Pfade und Pilotenname
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
-  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_flight_map.py \
+python scripts/export_flight_map.py \
   --flights-jsonl data/processed/flights.jsonl \
   --igc-dir data/igc/ \
   --output-dir data/export/ \

@@ -27,8 +27,11 @@ Langfristige Releases und Feature-Zuordnungen sind in [`docs/ROADMAP.md`](./ROAD
     - Absolute Pfade (`/home/florian/...`) aus `igc_extractor.py`, `.env.example`, `.gitignore` entfernt; ADR-007-Verweis auf relativen Pfad bzw. öffentlichen GitHub-Mirror geändert.
     - Brand-Neutralität: Docstrings/CLI-Descriptions auf "supported flight-data platform" umgestellt.
     - Disclaimer-Output beim Startup in `igc_extractor.py`, `list_flights.py`, `download_igc.py` hinzugefügt (non-blocking, ausgenommen `--help` bzw. `--dry-run` bei `igc_extractor.py`).
-    - `PILOT_NAME=""` in `.env.example` dokumentiert.
-  - Nächster Schritt (Doku): README-Einstieg und ADR-003 ggf. finalisieren.
+  - Dokumentation finalisiert:
+    - `README.md` mit Disclaimer, Quickstart-Link und neutraler GitHub-Klon-URL aktualisiert.
+    - `docs/runbooks/quickstart.md` als systemübergreifende, einsteigerfreie Anleitung erstellt.
+    - Bestehende Runbooks (`download-igc.md`, `export-flight-map.md`, `export-igc.md`) auf portable Befehle umgestellt; absolute Pfade und persönliche Namen entfernt.
+    - `docs/TODO.md` und `CHANGELOG.md` aktualisiert.
 
 - [x] Bugfix: `scripts/igc_extractor.py` verwendet `project_root()` korrekt
   - Fehler: `TypeError: unsupported operand type(s) for /: 'function' and 'str'`

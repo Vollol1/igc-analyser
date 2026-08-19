@@ -7,18 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `docs/runbooks/quickstart.md` – systemübergreifende, einsteigerfreie Schnellstart-Anleitung für Windows, macOS und Linux.
+- README-Disclaimer sowie Verweis auf Quickstart und ADR-003/Legal Notes.
+- Non-blocking startup disclaimer in `scripts/igc_extractor.py`, `scripts/list_flights.py`, and `scripts/download_igc.py`:
+  - Warns that the tool accesses a flight-data platform with user credentials, that usage is at the user's own risk, and that account bans or other sanctions are possible.
+  - Skipped when `--help` is used; in `igc_extractor.py` also skipped during `--dry-run`.
+
 ### Changed
 - Public-release cleanup:
   - Removed personal default pilot name (`Florian Knab`) from `scripts/export_flight_map.py` and `scripts/export_igc_zip.py`.
   - Pilot/sender name is now read from the `PILOT_NAME` environment variable and can be overridden via `--pilot-name` (or `--sender` in `export_igc_zip.py`). If unset, a generic placeholder is used.
   - Replaced absolute local paths (`/home/florian/...`) in `scripts/igc_extractor.py`, `.env.example`, and `.gitignore` with relative documentation references or a public GitHub mirror link.
   - Made CLI descriptions and docstrings brand-neutral: they now refer to a "supported flight-data platform" instead of naming the platform.
-
-### Added
-- Non-blocking startup disclaimer in `scripts/igc_extractor.py`, `scripts/list_flights.py`, and `scripts/download_igc.py`:
-  - Warns that the tool accesses a flight-data platform with user credentials, that usage is at the user's own risk, and that account bans or other sanctions are possible.
-  - Skipped when `--help` is used; in `igc_extractor.py` also skipped during `--dry-run`.
-- `PILOT_NAME=""` documented in `.env.example` with usage notes for `export_igc_zip.py` and `export_flight_map.py`.
+- `README.md` und bestehende Runbooks (`download-igc.md`, `export-flight-map.md`, `export-igc.md`) auf portable, relative Befehle umgestellt.
+- Absolute Pfade (`/home/florian/...`, `venv/bin/python`) aus den Runbooks und README entfernt; stattdessen `venv`-Aktivierung + `python scripts/...`.
+- `.env.example` um `PILOT_NAME` ergänzt und absolute Pfad-Referenz entfernt.
 
 ## [0.3.0] - 2026-08-18
 

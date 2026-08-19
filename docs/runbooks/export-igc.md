@@ -15,15 +15,16 @@ Metadaten und Validierungsstatus in ein strukturiertes Archiv.
 
 ## 1. Voraussetzungen
 
-1. Repository liegt lokal vor:
+1. Repository liegt lokal vor und du befindest dich im Projektverzeichnis:
    ```bash
-   cd /home/florian/git.vollol.com/fknab/igc-extractor
+   cd igc-extractor
    ```
 
-2. Virtuelles Environment ist vorhanden:
+2. Virtuelles Environment ist vorhanden und aktiviert:
    ```bash
    python3 -m venv venv
-   source venv/bin/activate
+   source venv/bin/activate      # macOS / Linux / Git Bash
+   # venv\Scripts\activate      # Windows Eingabeaufforderung / PowerShell
    pip install -r requirements.txt
    ```
 
@@ -34,7 +35,7 @@ Metadaten und Validierungsstatus in ein strukturiertes Archiv.
 ## 2. Standard-Export durchführen
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python   /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_igc_zip.py
+python scripts/export_igc_zip.py
 ```
 
 Eingaben:
@@ -134,21 +135,22 @@ Spalten:
 ### Eigener Archivname
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python   /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_igc_zip.py   --output-name meine_fluege_2024.zip
+python scripts/export_igc_zip.py --output-name meine_fluege_2024.zip
 ```
 
 ### Alternativ tar.gz
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python   /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_igc_zip.py   --format tar.gz
+python scripts/export_igc_zip.py --format tar.gz
 ```
 
 ### Piloten- / Absendernamen ändern
 
-Standardmäßig wird `README.txt` mit dem Namen `Florian Knab` erzeugt.
+Standardmäßig wird `README.txt` mit einem neutralen Platzhalter erzeugt.
+Setze deinen eigenen Namen:
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python   /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_igc_zip.py   --pilot-name "Max Mustermann"
+python scripts/export_igc_zip.py --pilot-name "Max Mustermann"
 ```
 
 `--sender` ist ein Alias für `--pilot-name`.
@@ -156,7 +158,11 @@ Standardmäßig wird `README.txt` mit dem Namen `Florian Knab` erzeugt.
 ### Pfade überschreiben
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python   /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_igc_zip.py   --igc-dir /pfad/zu/igc   --flights-jsonl /pfad/zu/flights.jsonl   --db /pfad/zu/igc-extractor.db   --output-dir /pfad/zum/export
+python scripts/export_igc_zip.py \
+  --igc-dir /pfad/zu/igc \
+  --flights-jsonl /pfad/zu/flights.jsonl \
+  --db /pfad/zu/igc-extractor.db \
+  --output-dir /pfad/zum/export
 ```
 
 ---
@@ -188,6 +194,7 @@ Standardmäßig wird `README.txt` mit dem Namen `Florian Knab` erzeugt.
 ## Verwandte Dokumente
 
 - [Agent-Verhaltensregeln](../../AGENT_BEHAVIOR_NOTES.md)
+- [Quick Start](../quickstart.md)
 - [Download-Runbook](./download-igc.md)
 - [Pipeline-Notizen](../notes/pipeline-notes.md)
 - [ADR-001: Architecture & Tech Stack](../decisions/ADR-001-architecture-techstack.md)

@@ -12,15 +12,16 @@ Schritt-für-Schritt-Anleitung für das Herunterladen von Paragliding-Flugtracks
 
 ## 1. Voraussetzungen
 
-1. Repository liegt lokal vor:
+1. Repository liegt lokal vor und du befindest dich im Projektverzeichnis:
    ```bash
-   cd /home/florian/git.vollol.com/fknab/igc-extractor
+   cd igc-extractor
    ```
 
-2. Virtuelles Environment ist vorhanden:
+2. Virtuelles Environment ist vorhanden und aktiviert:
    ```bash
    python3 -m venv venv
-   source venv/bin/activate
+   source venv/bin/activate      # macOS / Linux / Git Bash
+   # venv\Scripts\activate      # Windows Eingabeaufforderung / PowerShell
    pip install -r requirements.txt
    ```
 
@@ -46,8 +47,7 @@ Schritt-für-Schritt-Anleitung für das Herunterladen von Paragliding-Flugtracks
 ## 2. Flugliste extrahieren
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
-  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/list_flights.py
+python scripts/list_flights.py
 ```
 
 Ausgabe:
@@ -65,8 +65,7 @@ Dieser Schritt ist Voraussetzung für `download_igc.py`. Er schreibt die Felder
 ### 3.1 Erstladen (alle Flüge)
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
-  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/download_igc.py
+python scripts/download_igc.py
 ```
 
 - Liest `data/processed/flights.jsonl`.
@@ -86,23 +85,19 @@ Dieser Schritt ist Voraussetzung für `download_igc.py`. Er schreibt die Felder
 Bereits vorhandene Dateien werden standardmäßig übersprungen:
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
-  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/download_igc.py
+python scripts/download_igc.py
 ```
 
 Mit `--force` werden alle Dateien neu heruntergeladen:
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
-  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/download_igc.py \
-  --force
+python scripts/download_igc.py --force
 ```
 
 Rate-Limiting und Retries können angepasst werden:
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
-  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/download_igc.py \
+python scripts/download_igc.py \
   --rate-limit 2.0 \
   --max-retries 5
 ```
@@ -114,8 +109,7 @@ Rate-Limiting und Retries können angepasst werden:
 Nach dem Download in die SQLite-Datenbank importieren:
 
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
-  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/import_flights.py
+python scripts/import_flights.py
 ```
 
 Eingaben:
@@ -146,15 +140,14 @@ Ausgaben:
 Bei vielen hundert Flügen empfiehlt es sich, den Prozess im Hintergrund zu starten:
 
 ```bash
-nohup /home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
-  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/download_igc.py \
-  > /home/florian/git.vollol.com/fknab/igc-extractor/data/logs/igc_download_$(date -u +%Y%m%dT%H%M%SZ).log 2>&1 &
+nohup python scripts/download_igc.py \
+  > data/logs/igc_download_$(date -u +%Y%m%dT%H%M%SZ).log 2>&1 &
 ```
 
 Log folgen:
 
 ```bash
-tail -f /home/florian/git.vollol.com/fknab/igc-extractor/data/logs/download_igc_*.log
+tail -f data/logs/download_igc_*.log
 ```
 
 Stoppen:
@@ -178,6 +171,7 @@ pkill -f download_igc.py
 
 ## Verwandte Dokumente
 
+- [Quick Start](../quickstart.md)
 - [Agent-Verhaltensregeln](../../AGENT_BEHAVIOR_NOTES.md)
 - [Pipeline-Notizen](../notes/pipeline-notes.md)
 - [dhv-xc API-Notizen](../notes/dhv-xc-api.md)

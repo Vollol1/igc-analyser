@@ -1,6 +1,23 @@
 # igc-extractor
 
-Ein schlankes Python-CLI-Tool zum Herunterladen von Paragliding-Flugtracks im IGC-Format von [dhv-xc.de](https://www.dhv-xc.de). Es wurde entwickelt, um die Flüge eines Piloten lokal, idempotent und reproduzierbar zu extrahieren, ohne externe Cloud-Dienste zu benötigen. Standardmäßig werden alle in `data/processed/flights.jsonl` vorhandenen Flüge verarbeitet; ein explizites Limit kann über `--flights N` gesetzt werden.
+Ein schlankes Python-CLI-Tool zum persönlichen Herunterladen von Paragliding-Flugtracks im IGC-Format von [dhv-xc.de](https://www.dhv-xc.de). Es wurde entwickelt, um die eigenen Flüge eines Piloten lokal, idempotent und reproduzierbar zu extrahieren, ohne externe Cloud-Dienste zu benötigen. Standardmäßig werden alle in `data/processed/flights.jsonl` vorhandenen Flüge verarbeitet; ein explizites Limit kann über `--flights N` gesetzt werden.
+
+> **Schnellstart für neue Nutzer:** [`docs/runbooks/quickstart.md`](./docs/runbooks/quickstart.md) – eine Schritt-für-Schritt-Anleitung für Windows, macOS und Linux.
+
+## ⚠️ Hinweis zur Nutzung
+
+`igc-extractor` ist ein **inoffizielles, unabhängiges Community-Tool**. Es steht in **keiner Verbindung** zu [dhv-xc.de](https://www.dhv-xc.de), dem Deutschen Hängegleiterverband e.V. (DHV) oder dessen Serviceportal.
+
+Das Tool meldet sich mit **deinen persönlichen dhv-xc.de-Zugangsdaten** an und lädt ausschließlich **deine eigenen IGC-Flugdateien** herunter. Es greift nicht auf fremde Accounts oder öffentliche Daten anderer Piloten zu.
+
+**Nutzung auf eigene Gefahr:** Die öffentlich zugänglichen Nutzungsbedingungen von dhv-xc.de enthalten keine ausdrückliche Regelung zu automatisiertem Zugriff. Ein Account-Bann oder andere Sanktionen durch den Betreiber sind daher **nicht ausgeschlossen**. Bitte verwende das Tool verantwortungsvoll, setze Rate-Limits und starte keine parallelen Massenabfragen.
+
+Bitte beachte stets die aktuellen Nutzungsbedingungen von dhv-xc.de:
+
+- [dhv-xc.de Nutzungsvereinbarung](https://de.dhv-xc.de/info/nutzungsvereinbarung)
+- [dhv-xc.de Release-Informationen](https://de.dhv-xc.de/info#relase-infos)
+
+Weitere Hintergründe findest du in [ADR-003](./docs/decisions/ADR-003-public-release-dhv-xc.md) und [Legal & Release Notes](./docs/notes/legal-release-notes.md).
 
 ## Zweck
 
@@ -55,7 +72,7 @@ igc-extractor/
 1. Repository klonen:
 
    ```bash
-   git clone ssh://git@localhost:30022/fknab/igc-extractor.git
+   git clone https://github.com/<organisation>/igc-extractor.git
    cd igc-extractor
    ```
 
@@ -68,6 +85,11 @@ igc-extractor/
    ```
 
    Benötigt werden mindestens `requests`, `beautifulsoup4` und `lxml`. `python-dotenv` und `tqdm` sind optional, aber für die bequeme `.env`-Workflow bzw. ansprechende Fortschrittsanzeigen empfohlen.
+
+   Unter Windows verwende am besten **Git Bash**, damit die Befehle wie unter
+   macOS/Linux funktionieren. Alternativ: `python -m venv venv` und
+   `venv\Scripts\activate` in der Eingabeaufforderung. Siehe
+   [`docs/runbooks/quickstart.md`](./docs/runbooks/quickstart.md) für details.
 
 3. Konfigurationsdatei anlegen:
 
@@ -185,7 +207,8 @@ Das Archiv landet unter `data/export/igc_export_<run_id>.zip` (bzw. `*.tar.gz`) 
 Optionale Parameter:
 
 - `--pilot-name "Max Mustermann"` – Name für das Deckblatt `README.txt`.
-  `--sender` ist ein Alias. Standard ist `Florian Knab`.
+  `--sender` ist ein Alias. Standard ist ein neutraler Platzhalter; setze ihn
+  auf deinen eigenen Namen.
 - `--output-dir data/export` – Zielverzeichnis für das Archiv.
 - `--igc-dir data/igc` – Verzeichnis mit den lokalen IGC-Dateien.
 - `--flights-jsonl data/processed/flights.jsonl` – Quelle der Flugmetadaten.
