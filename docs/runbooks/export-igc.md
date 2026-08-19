@@ -146,8 +146,8 @@ python scripts/export_igc_zip.py --format tar.gz
 
 ### Piloten- / Absendernamen ändern
 
-Standardmäßig wird `README.txt` mit einem neutralen Platzhalter erzeugt.
-Setze deinen eigenen Namen:
+Standardmäßig wird die Umgebungsvariable `PILOT_NAME` verwendet; wenn diese nicht
+gesetzt ist, erscheint ein neutraler Platzhalter.
 
 ```bash
 python scripts/export_igc_zip.py --pilot-name "Max Mustermann"

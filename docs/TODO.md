@@ -31,7 +31,11 @@ Langfristige Releases und Feature-Zuordnungen sind in [`docs/ROADMAP.md`](./ROAD
     - `README.md` mit Disclaimer, Quickstart-Link und neutraler GitHub-Klon-URL aktualisiert.
     - `docs/runbooks/quickstart.md` als systemübergreifende, einsteigerfreie Anleitung erstellt.
     - Bestehende Runbooks (`download-igc.md`, `export-flight-map.md`, `export-igc.md`) auf portable Befehle umgestellt; absolute Pfade und persönliche Namen entfernt.
+    - `PILOT_NAME=""` in `.env.example` dokumentiert und `PILOT_NAME`-Default-Dokumentation in Runbooks korrigiert.
     - `docs/TODO.md` und `CHANGELOG.md` aktualisiert.
+  - CI-Grundgerüst erstellt: `.github/workflows/ci.yml`.
+  - `docs/ROADMAP.md` für v0.4.0 aktualisiert.
+  - Release-Draft erstellt: `docs/notes/github-release-draft.md`.
 
 - [x] Bugfix: `scripts/igc_extractor.py` verwendet `project_root()` korrekt
   - Fehler: `TypeError: unsupported operand type(s) for /: 'function' and 'str'`

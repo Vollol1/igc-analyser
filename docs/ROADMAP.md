@@ -15,35 +15,39 @@ Die Roadmap wird bei jedem größeren Feature oder Release aktualisiert.
 
 ---
 
-## [Unreleased] / Nächstes Release
+## v0.4.0 — Öffentliches Release: Cleanup, Disclaimer & CI-Grundgerüst (released 2026-08-19)
 
-Dieser Abschnitt sammelt Änderungen, die noch keinem Release zugeordnet sind, aber bereits fest eingeplant oder in Arbeit.
+**Ziel:** Das Repository für einen öffentlichen GitHub-Release vorbereiten: persönliche
+Daten aus dem Code und den Docs entfernen, Brand-Neutralität herstellen, Nutzer über
+das Risiko informieren und ein CI-Grundgerüst bereitstellen.
 
-### Hauptthema: Öffentliches Release, Testsuite, Robustheit und Datenqualität
+### Released Changes
 
-- Öffentlicher GitHub-Release vorbereiten
-  - Brand-neutrale Kommunikation und deutlicher Disclaimer (siehe [ADR-003](./decisions/ADR-003-public-release-dhv-xc.md) und [`docs/notes/legal-release-notes.md`](./notes/legal-release-notes.md)).
-  - README.md mit Hinweis zur Nutzung auf eigene Gefahr und möglichem Account-Bann ergänzen.
-  - Tool-Outputs (`scripts/igc_extractor.py`, `scripts/list_flights.py`) mit kurzem Disclaimer-Hinweis versehen.
-  - Default `--pilot-name` / `--sender` neutralisieren, damit keine persönlichen Namen im Code oder generierten Archiven verbleiben.
-- Testsuite aufbauen (`tests/`)
-  - Unit-Tests für IGC-Validierung, Dateinamensgenerierung, Hash-Bildung.
-  - Integrationstest mit lokalen Mock-IGC-Dateien ohne Netzwerk.
-  - CI-Grundgerüst für wiederkehrende Testläufe.
-- Resume-Logik für fehlgeschlagene Downloads verbessern
-  - `attempts`-Zähler in der Downloader-State-DB (`data/igc_extractor.db`).
-  - Erkennung dauerhaft fehlgeschlagener Flüge, statt endloser Wiederholung.
-- SQLite-Datenbanken konsolidieren (Vorbereitung)
-  - Dokumentieren, warum es aktuell zwei Datenbanken gibt (`igc_extractor.db` vs. `igc-extractor.db`).
-  - ADR erarbeiten, der den Migrationspfad zu einer einzigen DB beschreibt.
-- `LandingLocation` aus der DHV-XC Detailseite scrapen und im Export berücksichtigen.
-- Validierungs- und Ausreißer-Checks für Flugdaten (Distanz, Flugzeit, Höhenmeter).
+- [x] Public-release cleanup
+  - Persönlicher Default-Pilotenname (`Florian Knab`) aus `scripts/export_flight_map.py` und `scripts/export_igc_zip.py` entfernt.
+  - Piloten-/Absendername jetzt über Umgebungsvariable `PILOT_NAME` und CLI-Parameter `--pilot-name` / `--sender` konfigurierbar.
+  - Absolute lokale Pfade (`/home/florian/...`) in Code, Runbooks und Notizen durch relative/neutrale Referenzen ersetzt.
+  - CLI-Descriptions und Docstrings brand-neutral auf "supported flight-data platform" umgestellt.
+- [x] Disclaimer & Kommunikation
+  - Prominenter Disclaimer-Block in `README.md` (inoffizielles Tool, Nutzung auf eigene Gefahr, möglicher Account-Bann).
+  - Non-blocking Startup-Disclaimer in `scripts/igc_extractor.py`, `scripts/list_flights.py` und `scripts/download_igc.py`.
+  - ADR-003 und `docs/notes/legal-release-notes.md` dokumentieren die rechtliche Einschätzung.
+- [x] Dokumentation
+  - Neues `docs/runbooks/quickstart.md` für einen kompakten Einstieg.
+  - Runbooks (`download-igc.md`, `export-igc.md`, `export-flight-map.md`) auf relative Befehle und neutrale `PILOT_NAME`-Defaults aktualisiert.
+- [x] CI-Grundgerüst
+  - `.github/workflows/ci.yml` mit `py_compile` aller Skripte und `pytest`-Template hinzugefügt.
 
-### Optional / Zurückgestellt
+### Nicht in v0.4.0 umgesetzt (verschoben)
 
-- Höhenflug-Nachweis (dedizierter Export/Filter nach Mindesthöhe)
-  - Niedrig priorisiert; bleibt als Idee erhalten, hat aber kein festes Release-Ziel mehr.
-  - Vorgeschlagene Ablage: unter `v0.5.0+` oder als separates Tool/Script, sobald Bedarf besteht.
+Die folgenden Themen aus dem ursprünglichen [Unreleased]-Bereich bleiben für zukünftige Releases bestehen:
+
+- Testsuite aufbauen (`tests/`).
+- Resume-Logik für fehlgeschlagene Downloads verbessern.
+- SQLite-Datenbanken konsolidieren.
+- `LandingLocation` aus der DHV-XC Detailseite scrapen.
+- Validierungs- und Ausreißer-Checks für Flugdaten.
+- Höhenflug-Nachweis (optional; siehe v0.5.0+).
 
 ---
 

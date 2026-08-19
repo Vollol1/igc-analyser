@@ -29,7 +29,7 @@ Fertige Worktree-Ergebnisse müssen ins Haupt-Repository übernommen werden, bev
 2. **Git cherry-pick aus dem Worktree** (Fallback):
    ```bash
    # Im Haupt-Repository
-   cd /home/florian/git.vollol.com/fknab/igc-extractor
+   cd igc-extractor
    git fetch origin
    git cherry-pick <worktree-commit>
    ```

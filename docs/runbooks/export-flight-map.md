@@ -28,7 +28,7 @@ Ohne weitere Parameter werden folgende Defaults verwendet:
 * Log: `data/logs/export_flight_map_<run_id>.log`
 * Summary: `data/logs/export_flight_map_summary_<run_id>.json`
 * Gruppierung: `category` (Kategorie-Layer)
-* Pilotenname: neutraler Platzhalter; mit `--pilot-name` setzen
+* Pilotenname: Umgebungsvariable `PILOT_NAME` (oder neutraler Platzhalter, falls nicht gesetzt)
 
 ## Aufrufbeispiele
 

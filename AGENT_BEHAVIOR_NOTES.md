@@ -61,7 +61,7 @@ Keep notes concise, timestamped, and reproducible.
 
 **e) Agent code changes are made and committed only inside the worktree.**
 
-- The active worktree is `/home/florian/.cline/worktrees/51c1d/igc-extractor`.
+- The active worktree is `/home/florian/.cline/worktrees/<id>/igc-extractor` (path may vary per session).
 - Do **not** modify files in the main repository directory directly.
 - Merging into the main repo happens through the Kanban workflow, never by an ad-hoc agent commit.
 

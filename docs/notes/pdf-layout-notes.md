@@ -8,7 +8,7 @@ Bei der Optimierung der PDF-Ausgabe im `export_igc_zip.py`-Skript wurden folgend
 
 #### 1. Titel und Struktur
 - **Haupttitel**: "Flugbuch"
-- **Untertitel**: Zeigt Pilotenname und Zeitraum (z.B. "Florian Knab | 2024-10-06 bis 2026-08-15")
+- **Untertitel**: Zeigt Pilotenname und Zeitraum (z.B. "Max Mustermann | 2024-10-06 bis 2026-08-15")
 - **Tabellentitel**: "Flugliste"
 - **Trennung**: Deckblatt/Meta und Flugliste sind durch einen PageBreak klar getrennt
 

@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-smoke:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Compile all Python scripts
+        run: |
+          for script in scripts/*.py; do
+            echo "Compiling $script"
+            python -m py_compile "$script"
+          done
+
+      - name: Smoke-test --help on all CLIs
+        run: |
+          ./scripts/igc_extractor.py --help
+          ./scripts/list_flights.py --help
+          ./scripts/download_igc.py --help
+          ./scripts/import_flights.py --help
+          ./scripts/export_igc_zip.py --help
+          ./scripts/export_flight_map.py --help
+
+      # Uncomment once a tests/ directory exists:
+      # - name: Run tests
+      #   run: pytest -q

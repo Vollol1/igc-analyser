@@ -7,12 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+_(no unreleased changes at this time)_
+
+## [0.4.0] - 2026-08-19
+
 ### Added
 - `docs/runbooks/quickstart.md` – systemübergreifende, einsteigerfreie Schnellstart-Anleitung für Windows, macOS und Linux.
 - README-Disclaimer sowie Verweis auf Quickstart und ADR-003/Legal Notes.
 - Non-blocking startup disclaimer in `scripts/igc_extractor.py`, `scripts/list_flights.py`, and `scripts/download_igc.py`:
   - Warns that the tool accesses a flight-data platform with user credentials, that usage is at the user's own risk, and that account bans or other sanctions are possible.
   - Skipped when `--help` is used; in `igc_extractor.py` also skipped during `--dry-run`.
+- Added a suggested GitHub Actions CI workflow in `.github/workflows/ci.yml` (`py_compile` + `pytest` readiness).
+- Release-Draft-Vorlage erstellt: `docs/notes/github-release-draft.md`.
 
 ### Changed
 - Public-release cleanup:
@@ -107,6 +113,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 288 IGC files downloaded to `data/igc/`.
 - 287 valid, 1 invalid (missing G-Record), 0 missing.
 
+[0.4.0]: ../igc-extractor/releases/tag/v0.4.0
 [0.3.0]: ../igc-extractor/releases/tag/v0.3.0
 [0.2.1]: ../igc-extractor/releases/tag/v0.2.1
 [0.2.0]: ../Vollol1/igc-extractor/releases/tag/v0.2.0

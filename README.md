@@ -207,8 +207,8 @@ Das Archiv landet unter `data/export/igc_export_<run_id>.zip` (bzw. `*.tar.gz`) 
 Optionale Parameter:
 
 - `--pilot-name "Max Mustermann"` – Name für das Deckblatt `README.txt`.
-  `--sender` ist ein Alias. Standard ist ein neutraler Platzhalter; setze ihn
-  auf deinen eigenen Namen.
+  `--sender` ist ein Alias. Standardmäßig wird die Umgebungsvariable `PILOT_NAME`
+  verwendet; wenn diese nicht gesetzt ist, erscheint ein neutraler Platzhalter.
 - `--output-dir data/export` – Zielverzeichnis für das Archiv.
 - `--igc-dir data/igc` – Verzeichnis mit den lokalen IGC-Dateien.
 - `--flights-jsonl data/processed/flights.jsonl` – Quelle der Flugmetadaten.

@@ -38,17 +38,16 @@ Keine aktiven Tasks mehr. Der aktuelle Task (Notiz erstellen) ist der letzte off
 
 1. **Echten Testlauf durchführen:**
    ```bash
-   /home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
-     /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_flight_map.py
-   ```
+   ./scripts/export_flight_map.py
+  ```
 2. **Generierte Karte im Browser öffnen und visuell prüfen:**
-   ```bash
-   data/export/flights_map_*.html
-   ```
+  ```bash
+  data/export/flights_map_*.html
+  ```
 3. **Ggf. Folge-Tasks anlegen für:**
-   - SVG/PNG-Export der Karte
-   - 3D-Ansicht der Flugspuren
-   - Aufbau einer Testsuite (bereits in ROADMAP vermerkt)
+  - SVG/PNG-Export der Karte
+  - 3D-Ansicht der Flugspuren
+  - Aufbau einer Testsuite (bereits in ROADMAP vermerkt)
 
 ## Bekannte offene Punkte
 
@@ -76,8 +75,7 @@ python3 -m py_compile scripts/export_flight_map.py
 
 **Befehl:**
 ```bash
-/home/florian/git.vollol.com/fknab/igc-extractor/venv/bin/python \
-  /home/florian/git.vollol.com/fknab/igc-extractor/scripts/export_flight_map.py --help
+./scripts/export_flight_map.py --help
 ```
 
 **Ergebnis:** ✅ Erfolg  
@@ -96,7 +94,7 @@ Generate an interactive Leaflet map of imported IGC flights.
 
 **Befehl:**
 ```bash
-git -C /home/florian/git.vollol.com/fknab/igc-extractor log --oneline -5
+git -C igc-extractor log --oneline -5
 ```
 
 **Ergebnis:** ✅ Erfolg  
@@ -113,9 +111,7 @@ e7a0a66 refactor(scripts): extract shared helpers into scripts/common.py
 
 **Befehl:**
 ```bash
-'/home/florian/.nvm/versions/node/v24.14.1/bin/node' \
-  '/home/florian/.nvm/versions/node/v24.14.1/bin/kanban' task list \
-  --project-path /home/florian/git.vollol.com/fknab/igc-extractor
+kanban task list --project-path igc-extractor
 ```
 
 **Ergebnis:** ✅ Erfolg  
@@ -123,7 +119,7 @@ e7a0a66 refactor(scripts): extract shared helpers into scripts/common.py
 ```json
 {
   "ok": true,
-  "workspacePath": "/home/florian/git.vollol.com/fknab/igc-extractor",
+  "workspacePath": "igc-extractor",
   "column": null,
   "tasks": [
     {
