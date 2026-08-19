@@ -1,4 +1,4 @@
-# GitHub Release Draft — igc-extractor v0.4.0
+# GitHub Release Draft — igc-analyser v1.0.0
 
 This is a draft for the public GitHub release. Copy the Markdown below into the
 GitHub release form when the repository is ready.
@@ -7,11 +7,11 @@ GitHub release form when the repository is ready.
 
 ## Release title
 
-igc-extractor v0.4.0 — Public Release: Cleanup, Disclaimer & CI Scaffold
+igc-analyser v1.0.0 — Public Release: Cleanup, Disclaimer & CI Scaffold
 
 ## Tag
 
-`v0.4.0`
+`v1.0.0`
 
 ## Target
 
@@ -20,7 +20,7 @@ igc-extractor v0.4.0 — Public Release: Cleanup, Disclaimer & CI Scaffold
 ## Release notes (Markdown)
 
 ```markdown
-## What's new in v0.4.0
+## What's new in v1.0.0
 
 This release prepares the repository for a public GitHub release. The core
 functionality (listing, downloading, importing and exporting IGC flight tracks)
@@ -47,7 +47,7 @@ share.
 
 ### Full changelog
 
-See [CHANGELOG.md](https://github.com/fknab/igc-extractor/blob/main/CHANGELOG.md).
+See [CHANGELOG.md](https://github.com/fknab/igc-analyser/blob/main/CHANGELOG.md).
 
 ### Compatibility
 
@@ -80,12 +80,12 @@ No pre-built assets are required. The release only points to the source code
 
 - [ ] Repository is public on GitHub.
 - [ ] `.env` and `venv` are not tracked (verify `.gitignore`).
-- [ ] `LICENSE` is present and copyright holder is acceptable (`fknab`).
-- [ ] `CHANGELOG.md` contains the v0.4.0 section.
-- [ ] `docs/ROADMAP.md` marks v0.4.0 as released.
+- [ ] `LICENSE` is present and copyright holder is acceptable (`Florian Fliege`).
+- [ ] `CHANGELOG.md` contains the v1.0.0 section.
+- [ ] `docs/ROADMAP.md` marks v1.0.0 as released.
 - [ ] No personal data (`Florian`, `Knab`, `vollol`, `/home/florian`) remains in
       tracked files (excluding historical session notes, which are fine).
-- [ ] Tag `v0.4.0` is created on `main`.
+- [ ] Tag `v1.0.0` is created on `main`.
 - [ ] Release notes draft is copied into GitHub.
 
 ## Post-release

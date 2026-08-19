@@ -15,7 +15,7 @@ Die Roadmap wird bei jedem größeren Feature oder Release aktualisiert.
 
 ---
 
-## v0.4.0 — Öffentliches Release: Cleanup, Disclaimer & CI-Grundgerüst (released 2026-08-19)
+## v1.0.0 — Öffentliches Release: Cleanup, Disclaimer & CI-Grundgerüst (released 2026-08-19)
 
 **Ziel:** Das Repository für einen öffentlichen GitHub-Release vorbereiten: persönliche
 Daten aus dem Code und den Docs entfernen, Brand-Neutralität herstellen, Nutzer über
@@ -24,7 +24,7 @@ das Risiko informieren und ein CI-Grundgerüst bereitstellen.
 ### Released Changes
 
 - [x] Public-release cleanup
-  - Persönlicher Default-Pilotenname (`Florian Knab`) aus `scripts/export_flight_map.py` und `scripts/export_igc_zip.py` entfernt.
+  - Persönlicher Default-Pilotenname (`Florian Fliege`) aus `scripts/export_flight_map.py` und `scripts/export_igc_zip.py` entfernt.
   - Piloten-/Absendername jetzt über Umgebungsvariable `PILOT_NAME` und CLI-Parameter `--pilot-name` / `--sender` konfigurierbar.
   - Absolute lokale Pfade (`/home/florian/...`) in Code, Runbooks und Notizen durch relative/neutrale Referenzen ersetzt.
   - CLI-Descriptions und Docstrings brand-neutral auf "supported flight-data platform" umgestellt.
@@ -38,7 +38,7 @@ das Risiko informieren und ein CI-Grundgerüst bereitstellen.
 - [x] CI-Grundgerüst
   - `.github/workflows/ci.yml` mit `py_compile` aller Skripte und `pytest`-Template hinzugefügt.
 
-### Nicht in v0.4.0 umgesetzt (verschoben)
+### Nicht in v1.0.0 umgesetzt (verschoben)
 
 Die folgenden Themen aus dem ursprünglichen [Unreleased]-Bereich bleiben für zukünftige Releases bestehen:
 
@@ -47,7 +47,7 @@ Die folgenden Themen aus dem ursprünglichen [Unreleased]-Bereich bleiben für z
 - SQLite-Datenbanken konsolidieren.
 - `LandingLocation` aus der DHV-XC Detailseite scrapen.
 - Validierungs- und Ausreißer-Checks für Flugdaten.
-- Höhenflug-Nachweis (optional; siehe v0.5.0+).
+- Höhenflug-Nachweis (optional; siehe v1.2.0+).
 
 ---
 
@@ -143,7 +143,7 @@ und dient gleichzeitig als persönliche Flugretrospektive.
 
 ---
 
-## v0.4.0 — Import aus weiteren Quellen & erweiterte Visualisierung
+## v1.1.0 — Import aus weiteren Quellen & erweiterte Visualisierung
 
 **Ziel:** Weitere Datenquellen anbinden und die Darstellung der importierten Flüge über die Basis-Karte hinaus erweitern.
 
@@ -177,7 +177,7 @@ Mit mehreren Datenquellen wächst der lokale Flugbestand; gleichzeitig soll die 
 
 ---
 
-## v0.5.0 — Deduplizierung & Konsistenzprüfung
+## v1.2.0 — Deduplizierung & Konsistenzprüfung
 
 **Ziel:** Bei mehreren Quellen und wiederholten Importen sicherstellen, dass jeder Flug nur einmal im Bestand existiert und die Daten konsistent sind.
 
@@ -196,7 +196,7 @@ Mit mehreren Datenquellen wächst der lokale Flugbestand; gleichzeitig soll die 
 ### Motivation
 
 Sobald mehrere Quellen und regelmäßige Importe hinzukommen, entstehen schnell Dubletten und Inkonsistenzen.
-v0.5.0 soll den lokalen Flugbestand zuverlässig aufräumen und dem Nutzer transparent melden, was zusammengeführt oder nachgeholt werden muss.
+v1.2.0 soll den lokalen Flugbestand zuverlässig aufräumen und dem Nutzer transparent melden, was zusammengeführt oder nachgeholt werden muss.
 
 ### Technische Hinweise
 

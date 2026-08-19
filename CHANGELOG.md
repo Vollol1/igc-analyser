@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _(no unreleased changes at this time)_
 
-## [0.4.0] - 2026-08-19
+## [1.0.0] - 2026-08-19
 
 ### Added
 - `docs/runbooks/quickstart.md` – systemübergreifende, einsteigerfreie Schnellstart-Anleitung für Windows, macOS und Linux.
@@ -22,7 +22,7 @@ _(no unreleased changes at this time)_
 
 ### Changed
 - Public-release cleanup:
-  - Removed personal default pilot name (`Florian Knab`) from `scripts/export_flight_map.py` and `scripts/export_igc_zip.py`.
+  - Removed personal default pilot name (`Florian Fliege`) from `scripts/export_flight_map.py` and `scripts/export_igc_zip.py`.
   - Pilot/sender name is now read from the `PILOT_NAME` environment variable and can be overridden via `--pilot-name` (or `--sender` in `export_igc_zip.py`). If unset, a generic placeholder is used.
   - Replaced absolute local paths (`/home/florian/...`) in `scripts/igc_extractor.py`, `.env.example`, and `.gitignore` with relative documentation references or a public GitHub mirror link.
   - Made CLI descriptions and docstrings brand-neutral: they now refer to a "supported flight-data platform" instead of naming the platform.
@@ -81,7 +81,7 @@ _(no unreleased changes at this time)_
   - IGC files inside the archive use speaking names: `<IDFlight>_<FlightDate>_<TakeoffLocation>.igc`.
   - Run log and JSON summary are written under `data/logs/`.
 - `docs/decisions/ADR-002-pdf-reporting-reportlab.md` documenting the PDF-generation decision.
-- `docs/ROADMAP.md` with planned releases v0.2.0–v0.5.0.
+- `docs/ROADMAP.md` with planned releases v0.2.0–v1.2.0.
 
 ### Changed
 - Consolidated and cleaned up project documentation (`README.md`, `docs/TODO.md`, agent notes, pipeline notes, runbooks).
@@ -113,7 +113,7 @@ _(no unreleased changes at this time)_
 - 288 IGC files downloaded to `data/igc/`.
 - 287 valid, 1 invalid (missing G-Record), 0 missing.
 
-[0.4.0]: ../igc-extractor/releases/tag/v0.4.0
+[1.0.0]: ../igc-extractor/releases/tag/v1.0.0
 [0.3.0]: ../igc-extractor/releases/tag/v0.3.0
 [0.2.1]: ../igc-extractor/releases/tag/v0.2.1
 [0.2.0]: ../Vollol1/igc-extractor/releases/tag/v0.2.0

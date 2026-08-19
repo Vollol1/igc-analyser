@@ -16,13 +16,13 @@ Langfristige Releases und Feature-Zuordnungen sind in [`docs/ROADMAP.md`](./ROAD
 
 ## Aktuell in Arbeit
 
-- [x] Öffentlicher GitHub-Release vorbereiten: ADR-003 + Legal Notes + README/Tool-Disclaimer
+- [x] Öffentlicher GitHub-Release v1.0.0 vorbereiten: ADR-003 + Legal Notes + README/Tool-Disclaimer
   - Recherche der öffentlichen dhv-xc.de-Quellen (`Nutzungsvereinbarung`, `Release-Informationen`).
   - Dokumentation in [`docs/notes/legal-release-notes.md`](./notes/legal-release-notes.md).
   - Architekturentscheidung in [`docs/decisions/ADR-003-public-release-dhv-xc.md`](./decisions/ADR-003-public-release-dhv-xc.md).
   - Vorgeschlagene Disclaimer-Texte für README und Tool-Output in ADR-003 und Legal Notes hinterlegt.
   - Code bereinigt:
-    - Persönliche Defaults (`Florian Knab`) aus `export_flight_map.py` und `export_igc_zip.py` entfernt.
+    - Persönliche Defaults (`Florian Fliege`) aus `export_flight_map.py` und `export_igc_zip.py` entfernt.
     - Pilotenname wird aus `PILOT_NAME`-Umgebungsvariable gelesen, per `--pilot-name` überschrieben; leer = generischer Platzhalter.
     - Absolute Pfade (`/home/florian/...`) aus `igc_extractor.py`, `.env.example`, `.gitignore` entfernt; ADR-007-Verweis auf relativen Pfad bzw. öffentlichen GitHub-Mirror geändert.
     - Brand-Neutralität: Docstrings/CLI-Descriptions auf "supported flight-data platform" umgestellt.
@@ -34,7 +34,7 @@ Langfristige Releases und Feature-Zuordnungen sind in [`docs/ROADMAP.md`](./ROAD
     - `PILOT_NAME=""` in `.env.example` dokumentiert und `PILOT_NAME`-Default-Dokumentation in Runbooks korrigiert.
     - `docs/TODO.md` und `CHANGELOG.md` aktualisiert.
   - CI-Grundgerüst erstellt: `.github/workflows/ci.yml`.
-  - `docs/ROADMAP.md` für v0.4.0 aktualisiert.
+  - `docs/ROADMAP.md` für v1.0.0 aktualisiert.
   - Release-Draft erstellt: `docs/notes/github-release-draft.md`.
 
 - [x] Bugfix: `scripts/igc_extractor.py` verwendet `project_root()` korrekt
@@ -104,7 +104,7 @@ _(verschoben aus dem ursprünglichen v0.2.0-Scope; siehe [ROADMAP.md](./ROADMAP.
   - Utilities extrahieren (wiederverwendbarer B-Record-Parser, ggf. gemeinsame Flug-Metadaten-Leser).
   - [x] Basis-Karte mit Kategorie-Layer (Lokal / XC / Höhenflug).
   - [x] Zusätzliche Gruppierungen (Startplatz, Flugjahr, Gleitschirm).
-  - SVG/PNG-Export der Karte (optional, v0.4.0).
+  - SVG/PNG-Export der Karte (optional, v1.1.0).
   - 3D-Ansicht der Tracks (optional, später).
 
 ## Erledigt
@@ -175,7 +175,7 @@ _(keine außerhalb von "Erledigt")_
 
 ## Optional / Zurückgestellt
 
-- [?] Web-Frontend oder Visualisierung für heruntergeladene Flüge (wird in ROADMAP v0.4.0 betrachtet)
+- [?] Web-Frontend oder Visualisierung für heruntergeladene Flüge (wird in ROADMAP v1.1.0 betrachtet)
 - [?] Cloud-Fallback für dhv-xc.de (aktuell nicht vorgesehen)
 
 ## Langfristig / Vision
@@ -184,7 +184,7 @@ _(keine außerhalb von "Erledigt")_
 - [ ] Alle gewünschten Flüge lokal vorhanden, validiert und in SQLite importiert.
 - [x] Interaktive Kartenvisualisierung der importierten Flüge (v0.3.0)
 - [?] Höhenflug-Nachweis (dedizierter Export/Filter nach Mindesthöhe) (zurückgestellt)
-- [?] Erweiterte Kartenvisualisierung (SVG/PNG-Export, Heatmap, 3D) (v0.4.0)
-- [ ] Import aus weiteren Quellen (z. B. XContest, XCTrack, lokale Logger-Dateien) (v0.4.0)
-- [ ] Deduplizierung und Konsistenzprüfung über alle importierten Flüge hinweg (v0.5.0)
+- [?] Erweiterte Kartenvisualisierung (SVG/PNG-Export, Heatmap, 3D) (v1.1.0)
+- [ ] Import aus weiteren Quellen (z. B. XContest, XCTrack, lokale Logger-Dateien) (v1.1.0)
+- [ ] Deduplizierung und Konsistenzprüfung über alle importierten Flüge hinweg (v1.2.0)
 - [ ] Testsuite und CI für zuverlässige Releases (siehe Kurzfristig geplant)

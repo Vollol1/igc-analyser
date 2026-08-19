@@ -153,11 +153,11 @@ pytest tests/
 **l) Für Release-Beschreibungen in Gitea werden ausschließlich relative Links verwendet, die auf den jeweiligen Tag verweisen.**
 
 - Verboten: absolute URLs wie `http://localhost:30030/...`, Links auf `main` oder `blob/...`-Pfade.
-- Korrektes Muster für ein Repository `/fknab/igc-extractor` und Tag `v0.2.0`:
+- Korrektes Muster für ein Repository `/fknab/igc-analyser` und Tag `v0.2.0`:
   ```markdown
-  [CHANGELOG.md](../igc-extractor/src/tag/v0.2.0/CHANGELOG.md)
+  [CHANGELOG.md](../igc-analyser/src/tag/v0.2.0/CHANGELOG.md)
   ```
-- Begründung: Von der Release-URL `/fknab/igc-extractor/releases/tag/v0.2.0` führt `../igc-extractor/` zurück auf die Repository-Ebene; `src/tag/v0.2.0/CHANGELOG.md` zeigt dann auf die Datei im Tag-Source.
+- Begründung: Von der Release-URL `/fknab/igc-analyser/releases/tag/v0.2.0` führt `../igc-analyser/` zurück auf die Repository-Ebene; `src/tag/v0.2.0/CHANGELOG.md` zeigt dann auf die Datei im Tag-Source.
 - Dieses Muster gilt für alle zukünftigen Releases und Dokumenten-Verweise innerhalb von Gitea-Release-Notizen.
 
 ---

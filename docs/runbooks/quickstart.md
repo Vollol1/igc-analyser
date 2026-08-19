@@ -136,18 +136,13 @@ Wähle auf deinem Rechner einen Ordner, in dem du Projekte ablegst, z. B. deinen
 Benutzer-Ordner oder einen `Projects`-Ordner. Im Terminal wechselst du dorthin
 und lädst das Repository herunter.
 
-> **Hinweis:** Sobald das Projekt öffentlich auf GitHub verfügbar ist, ersetzt du
-> die URL unten durch die echte GitHub-Adresse, z. B.
-> `https://github.com/<organisation>/igc-extractor.git`. Bis dahin kannst du das
-> Repository aus deiner bevorzugten Quelle klonen.
-
 ```bash
 cd ~
-git clone https://github.com/<organisation>/igc-extractor.git
-cd igc-extractor
+git clone https://github.com/fknab/igc-analyser.git
+cd igc-analyser
 ```
 
-Nach dem Klonen befinden alle Projektdateien im Unterordner `igc-extractor`.
+Nach dem Klonen befinden alle Projektdateien im Unterordner `igc-analyser`.
 Alle folgenden Befehle setzen voraus, dass du in diesem Ordner bist.
 
 ---
@@ -158,7 +153,7 @@ Ein virtuelles Environment (kurz: `venv`) ist ein eigener, kleiner Python-
 Arbeitsbereich für das Projekt. Dort werden die benötigten Zusatzpakete
 installiert, ohne dein System-Python zu verändern.
 
-Führe im Projektordner `igc-extractor` aus:
+Führe im Projektordner aus:
 
 ```bash
 python3 -m venv venv

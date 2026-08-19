@@ -72,8 +72,8 @@ igc-extractor/
 1. Repository klonen:
 
    ```bash
-   git clone https://github.com/<organisation>/igc-extractor.git
-   cd igc-extractor
+   git clone https://github.com/fknab/igc-analyser.git
+   cd igc-analyser
    ```
 
 2. Virtuelles Environment anlegen und Abhängigkeiten installieren:
