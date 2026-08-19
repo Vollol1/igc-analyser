@@ -80,7 +80,7 @@ No pre-built assets are required. The release only points to the source code
 
 - [ ] Repository is public on GitHub.
 - [ ] `.env` and `venv` are not tracked (verify `.gitignore`).
-- [ ] `LICENSE` is present and copyright holder is acceptable (`Florian Fliege`).
+- [ ] `LICENSE` is present and copyright holder is acceptable (`Florian Knab`).
 - [ ] `CHANGELOG.md` contains the v1.0.0 section.
 - [ ] `docs/ROADMAP.md` marks v1.0.0 as released.
 - [ ] No personal data (`Florian`, `Knab`, `vollol`, `/home/florian`) remains in
