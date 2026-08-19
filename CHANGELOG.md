@@ -22,7 +22,7 @@ _(no unreleased changes at this time)_
 
 ### Changed
 - Public-release cleanup:
-  - Removed personal default pilot name (`Florian Fliege`) from `scripts/export_flight_map.py` and `scripts/export_igc_zip.py`.
+  - Removed personal default pilot name (`Florian Knab`) from `scripts/export_flight_map.py` and `scripts/export_igc_zip.py`.
   - Pilot/sender name is now read from the `PILOT_NAME` environment variable and can be overridden via `--pilot-name` (or `--sender` in `export_igc_zip.py`). If unset, a generic placeholder is used.
   - Replaced absolute local paths (`/home/florian/...`) in `scripts/igc_extractor.py`, `.env.example`, and `.gitignore` with relative documentation references or a public GitHub mirror link.
   - Made CLI descriptions and docstrings brand-neutral: they now refer to a "supported flight-data platform" instead of naming the platform.

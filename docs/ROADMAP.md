@@ -24,7 +24,7 @@ das Risiko informieren und ein CI-Grundgerüst bereitstellen.
 ### Released Changes
 
 - [x] Public-release cleanup
-  - Persönlicher Default-Pilotenname (`Florian Fliege`) aus `scripts/export_flight_map.py` und `scripts/export_igc_zip.py` entfernt.
+  - Persönlicher Default-Pilotenname (`Florian Knab`) aus `scripts/export_flight_map.py` und `scripts/export_igc_zip.py` entfernt.
   - Piloten-/Absendername jetzt über Umgebungsvariable `PILOT_NAME` und CLI-Parameter `--pilot-name` / `--sender` konfigurierbar.
   - Absolute lokale Pfade (`/home/florian/...`) in Code, Runbooks und Notizen durch relative/neutrale Referenzen ersetzt.
   - CLI-Descriptions und Docstrings brand-neutral auf "supported flight-data platform" umgestellt.

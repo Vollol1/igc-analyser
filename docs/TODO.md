@@ -22,7 +22,7 @@ Langfristige Releases und Feature-Zuordnungen sind in [`docs/ROADMAP.md`](./ROAD
   - Architekturentscheidung in [`docs/decisions/ADR-003-public-release-dhv-xc.md`](./decisions/ADR-003-public-release-dhv-xc.md).
   - Vorgeschlagene Disclaimer-Texte für README und Tool-Output in ADR-003 und Legal Notes hinterlegt.
   - Code bereinigt:
-    - Persönliche Defaults (`Florian Fliege`) aus `export_flight_map.py` und `export_igc_zip.py` entfernt.
+    - Persönliche Defaults (`Florian Knab`) aus `export_flight_map.py` und `export_igc_zip.py` entfernt.
     - Pilotenname wird aus `PILOT_NAME`-Umgebungsvariable gelesen, per `--pilot-name` überschrieben; leer = generischer Platzhalter.
     - Absolute Pfade (`/home/florian/...`) aus `igc_extractor.py`, `.env.example`, `.gitignore` entfernt; ADR-007-Verweis auf relativen Pfad bzw. öffentlichen GitHub-Mirror geändert.
     - Brand-Neutralität: Docstrings/CLI-Descriptions auf "supported flight-data platform" umgestellt.
