@@ -22,6 +22,7 @@ import argparse
 import html
 import json
 import logging
+import os
 import sqlite3
 import sys
 import uuid
@@ -46,7 +47,6 @@ DEFAULT_IGC_DIR = Path("data/igc")
 DEFAULT_DB = Path("data/igc-extractor.db")
 DEFAULT_OUTPUT_DIR = Path("data/export")
 DEFAULT_LOG_DIR = Path("data/logs")
-DEFAULT_PILOT_NAME = "Florian Knab"
 
 MAX_TRACK_POINTS = 750
 
@@ -737,7 +737,7 @@ def _html_page(data: dict[str, Any], pilot_name: str) -> str:
 <button class="stats-panel-toggle" id="statsToggle" title="Statistik ein-/ausblenden">📊 Statistik</button>
 <div class="stats-panel" id="statsPanel">
   <h1>IGC-Flugkarte</h1>
-  <p style="margin:0 0 10px; color:#4b5563;">Pilot: {html.escape(pilot_name)}</p>
+  <p style="margin:0 0 10px; color:#4b5563;">Pilot: {html.escape(pilot_name) if pilot_name else "nicht angegeben"}</p>
 
   <h2>Statistik</h2>
   <table>
@@ -1012,8 +1012,11 @@ def _parse_args(args: Optional[list[str]] = None) -> argparse.Namespace:
     parser.add_argument(
         "--pilot-name",
         type=str,
-        default=DEFAULT_PILOT_NAME,
-        help=f"Name of the pilot to display in the map panel (default: {DEFAULT_PILOT_NAME}).",
+        default=os.environ.get("PILOT_NAME", ""),
+        help=(
+            "Name of the pilot to display in the map panel. "
+            "Defaults to the PILOT_NAME environment variable; if unset, a generic placeholder is used."
+        ),
     )
     parser.add_argument(
         "--group-by",

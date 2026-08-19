@@ -47,7 +47,6 @@ DEFAULT_IGC_DIR = Path("data/igc")
 DEFAULT_DB = Path("data/igc-extractor.db")
 DEFAULT_OUTPUT_DIR = Path("data/export")
 DEFAULT_LOG_DIR = Path("data/logs")
-DEFAULT_PILOT_NAME = "Florian Knab"
 
 META_FILENAME = "export_meta.json"
 CSV_FILENAME = "flights.csv"
@@ -258,12 +257,13 @@ def _build_readme(meta: dict[str, Any], pilot_name: str) -> bytes:
     best_flight = meta.get("best_single_flight")
     takeoffs = meta.get("unique_takeoff_locations", 0)
     generated = meta.get("generated_at", "unbekannt")
+    display_name = pilot_name if pilot_name else "nicht angegeben"
 
     lines = [
         "IGC-Flugarchiv - Kurzbeschreibung",
         "==================================",
         "",
-        f"Pilot / Absender: {pilot_name}",
+        f"Pilot / Absender: {display_name}",
         f"Dieses Archiv enthaelt {total_flights} IGC-Datei(en) von Paragliding- bzw.",
         "Gleitschirmfluegen.",
         "",
@@ -367,13 +367,15 @@ def _build_pdf(meta: dict[str, Any], flights: list[FlightRecord], pilot_name: st
     # Format the generated date in a readable format
     generated_readable = _format_datetime_readable(generated)
 
+    display_name = pilot_name if pilot_name else "nicht angegeben"
+
     # Subtitle with pilot and period for context
-    subtitle_text = f"<i>{pilot_name}</i> &nbsp;|&nbsp; {period_label}"
+    subtitle_text = f"<i>{display_name}</i> &nbsp;|&nbsp; {period_label}"
     story.append(Paragraph(subtitle_text, styles["Normal"]))
     story.append(Spacer(1, 0.5 * cm))
 
     cover_data = [
-        ["Pilot:", _format_value(pilot_name)],
+        ["Pilot:", _format_value(display_name)],
         ["Zeitraum:", _format_value(period_label)],
         ["Anzahl Fluege:", _format_value(total_flights)],
         ["Gesamtflugzeit:", f"{_format_value(duration)} Min"],
@@ -703,11 +705,11 @@ def _parse_args(args: Optional[list[str]] = None) -> argparse.Namespace:
         "--pilot-name",
         "--sender",
         type=str,
-        default=DEFAULT_PILOT_NAME,
+        default=os.environ.get("PILOT_NAME", ""),
         dest="pilot_name",
         help=(
-            "Name of the pilot or sender to write into README.txt "
-            f"(default: {DEFAULT_PILOT_NAME})."
+            "Name of the pilot or sender to write into README.txt and the PDF cover sheet. "
+            "Defaults to the PILOT_NAME environment variable; if unset, a generic placeholder is used."
         ),
     )
     return parser.parse_args(args)

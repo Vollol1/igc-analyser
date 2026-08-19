@@ -44,6 +44,17 @@ from dhv_xc_client import (
 
 TARGET_MIN_FLIGHTS = 200
 
+_DISCLAIMER = (
+    "Hinweis: Dieses Tool greift mit deinen Credentials auf eine Flugdatenplattform zu. "
+    "Du nutzt es auf eigene Gefahr. Ein Account-Bann oder andere Sanktionen seitens der "
+    "Plattform sind möglich. Stelle sicher, dass du die geltenden Nutzungsbedingungen einhältst."
+)
+
+
+def _print_disclaimer() -> None:
+    """Print a short, non-blocking disclaimer at startup."""
+    print(_DISCLAIMER, file=sys.stderr)
+
 
 @dataclass(frozen=True, slots=True)
 class FlightRecord:
@@ -152,12 +163,12 @@ def _merge_idempotent(
 def _parse_args(args: Optional[list[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="list_flights.py",
-        description="List own flights from dhv-xc.de and write them to JSONL.",
+        description="List own flights from a supported flight-data platform (default: dhv-xc.de) and write them to JSONL.",
     )
     parser.add_argument(
         "--base-url",
         default=os.environ.get("DHV_XC_BASE_URL", DEFAULT_BASE_URL),
-        help="DHV-XC base URL (default: https://www.dhv-xc.de).",
+        help="Base URL of the flight-data platform (default: https://www.dhv-xc.de).",
     )
     parser.add_argument(
         "--username",
@@ -193,6 +204,8 @@ def _parse_args(args: Optional[list[str]] = None) -> argparse.Namespace:
 def main(args: Optional[list[str]] = None) -> int:
     _load_dotenv()
     parsed = _parse_args(args)
+
+    _print_disclaimer()
 
     username = parsed.username or os.environ.get("DHV_XC_USERNAME")
     password = parsed.password or os.environ.get("DHV_XC_PASSWORD")

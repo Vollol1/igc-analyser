@@ -1,7 +1,8 @@
 # ── Environment / credentials ───────────────────────────────────────────────
 # .env enthält echte Credentials und darf NIEMALS committet werden.
 # Siehe docs/decisions/ADR-001-architecture-techstack.md und
-# /home/florian/github.com/Vollol1/gag-atlas/docs/decisions/ADR-007-secrets-management.md
+# docs/decisions/ADR-007-secrets-management.md (oder öffentlicher Mirror:
+# https://github.com/Vollol1/gag-atlas/blob/main/docs/decisions/ADR-007-secrets-management.md).
 .env
 .env.local
 .env.*.local

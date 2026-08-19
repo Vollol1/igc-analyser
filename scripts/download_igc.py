@@ -98,7 +98,7 @@ class Summary:
 def _parse_args(args: Optional[list[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="download_igc",
-        description="Download IGC files for flights in data/processed/flights.jsonl.",
+        description="Download IGC files for flights in data/processed/flights.jsonl from a supported flight-data platform (default: dhv-xc.de).",
     )
     parser.add_argument(
         "--flights-jsonl",
@@ -242,9 +242,23 @@ def _build_igc_url(base_url: str, flight: Flight) -> str:
     return f"{base_url.rstrip('/')}/flight/{flight.id}/igc"
 
 
+_DISCLAIMER = (
+    "Hinweis: Dieses Tool greift mit deinen Credentials auf eine Flugdatenplattform zu. "
+    "Du nutzt es auf eigene Gefahr. Ein Account-Bann oder andere Sanktionen seitens der "
+    "Plattform sind möglich. Stelle sicher, dass du die geltenden Nutzungsbedingungen einhältst."
+)
+
+
+def _print_disclaimer() -> None:
+    """Print a short, non-blocking disclaimer at startup."""
+    print(_DISCLAIMER, file=sys.stderr)
+
+
 def main(args: Optional[list[str]] = None) -> int:
     load_dotenv_if_available()
     parsed = _parse_args(args)
+
+    _print_disclaimer()
 
     try:
         username, password = _resolve_credentials(parsed)

@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Public-release cleanup:
+  - Removed personal default pilot name (`Florian Knab`) from `scripts/export_flight_map.py` and `scripts/export_igc_zip.py`.
+  - Pilot/sender name is now read from the `PILOT_NAME` environment variable and can be overridden via `--pilot-name` (or `--sender` in `export_igc_zip.py`). If unset, a generic placeholder is used.
+  - Replaced absolute local paths (`/home/florian/...`) in `scripts/igc_extractor.py`, `.env.example`, and `.gitignore` with relative documentation references or a public GitHub mirror link.
+  - Made CLI descriptions and docstrings brand-neutral: they now refer to a "supported flight-data platform" instead of naming the platform.
+
+### Added
+- Non-blocking startup disclaimer in `scripts/igc_extractor.py`, `scripts/list_flights.py`, and `scripts/download_igc.py`:
+  - Warns that the tool accesses a flight-data platform with user credentials, that usage is at the user's own risk, and that account bans or other sanctions are possible.
+  - Skipped when `--help` is used; in `igc_extractor.py` also skipped during `--dry-run`.
+- `PILOT_NAME=""` documented in `.env.example` with usage notes for `export_igc_zip.py` and `export_flight_map.py`.
+
 ## [0.3.0] - 2026-08-18
 
 ### Added
@@ -51,7 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `scripts/export_igc_zip.py` — export downloaded IGC files as structured `*.zip` or `*.tar.gz` archives under `data/export/`:
-  - `README.txt` cover sheet with pilot/sender name (default `Florian Knab`, configurable via `--pilot-name` / `--sender`), archive contents, validation notes and creation date.
+  - `README.txt` cover sheet with pilot/sender name (configurable via `--pilot-name` / `--sender` or the `PILOT_NAME` environment variable), archive contents, validation notes and creation date.
   - `export_meta.json` archive overview: total flights, IGC files, summed flight duration, `sum_best_task_distance_km`, `best_single_flight_distance_km`, `best_single_flight` (ID, date, takeoff, glider), period, unique takeoff locations and generation timestamp.
   - `flights.csv` detailed flight table including `IDFlight`, `FlightDate`, `TakeoffLocation`, `Glider`, `FlightDuration`, `BestTaskDistanceKm`, `IgcFilenameInArchive`, `ValidStatus` and `OriginalIgcFilename`.
   - `flight_summary.pdf` structured German flight summary (cover page, compact meta table, validation note and landscape flight table) generated with `reportlab>=4.0.0`; see ADR-002.
@@ -75,7 +88,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2026-07-29
 
 ### Added
-- Authenticated login to [dhv-xc.de](https://www.dhv-xc.de) via shared `DhvXcClient` (`scripts/dhv_xc_client.py`).
+- Authenticated login to a supported flight-data platform (default: [dhv-xc.de](https://www.dhv-xc.de)) via shared `DhvXcClient` (`scripts/dhv_xc_client.py`).
 - `scripts/list_flights.py` – list own flights (including private flights) and write them to `data/processed/flights.jsonl`.
 - `scripts/download_igc.py` – download IGC files in batches with rate limiting, retries, and resume support.
 - `scripts/import_flights.py` – import flight metadata and downloaded IGC files into SQLite with structural validation.

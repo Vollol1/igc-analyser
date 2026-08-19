@@ -21,7 +21,14 @@ Langfristige Releases und Feature-Zuordnungen sind in [`docs/ROADMAP.md`](./ROAD
   - Dokumentation in [`docs/notes/legal-release-notes.md`](./notes/legal-release-notes.md).
   - Architekturentscheidung in [`docs/decisions/ADR-003-public-release-dhv-xc.md`](./decisions/ADR-003-public-release-dhv-xc.md).
   - Vorgeschlagene Disclaimer-Texte für README und Tool-Output in ADR-003 und Legal Notes hinterlegt.
-  - Nächster Schritt (Code): Disclaimer-Texte in `README.md` und Tool-Outputs übernehmen; Default `--pilot-name` neutralisieren.
+  - Code bereinigt:
+    - Persönliche Defaults (`Florian Knab`) aus `export_flight_map.py` und `export_igc_zip.py` entfernt.
+    - Pilotenname wird aus `PILOT_NAME`-Umgebungsvariable gelesen, per `--pilot-name` überschrieben; leer = generischer Platzhalter.
+    - Absolute Pfade (`/home/florian/...`) aus `igc_extractor.py`, `.env.example`, `.gitignore` entfernt; ADR-007-Verweis auf relativen Pfad bzw. öffentlichen GitHub-Mirror geändert.
+    - Brand-Neutralität: Docstrings/CLI-Descriptions auf "supported flight-data platform" umgestellt.
+    - Disclaimer-Output beim Startup in `igc_extractor.py`, `list_flights.py`, `download_igc.py` hinzugefügt (non-blocking, ausgenommen `--help` bzw. `--dry-run` bei `igc_extractor.py`).
+    - `PILOT_NAME=""` in `.env.example` dokumentiert.
+  - Nächster Schritt (Doku): README-Einstieg und ADR-003 ggf. finalisieren.
 
 - [x] Bugfix: `scripts/igc_extractor.py` verwendet `project_root()` korrekt
   - Fehler: `TypeError: unsupported operand type(s) for /: 'function' and 'str'`

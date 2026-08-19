@@ -2,10 +2,11 @@
 """
 igc-extractor CLI tool.
 
-Downloads paragliding flight tracks (IGC files) from dhv-xc.de.
-The tool is intentionally lightweight: plain Python + requests/BeautifulSoup,
-local SQLite/JSONL storage, idempotent execution with resume support,
-and credentials sourced from environment variables / .env.
+Downloads paragliding flight tracks (IGC files) from a supported flight-data
+platform (default: dhv-xc.de). The tool is intentionally lightweight:
+plain Python + requests/BeautifulSoup, local SQLite/JSONL storage,
+idempotent execution with resume support, and credentials sourced from
+environment variables / .env.
 
 This script orchestrates the full pipeline:
 
@@ -14,7 +15,8 @@ This script orchestrates the full pipeline:
     3. import_flights.py - import metadata + IGC files into SQLite and validate.
 
 See docs/decisions/ADR-001-architecture-techstack.md for architectural
-principles and /home/florian/github.com/Vollol1/gag-atlas/docs/decisions/ADR-007-secrets-management.md
+principles and docs/decisions/ADR-007-secrets-management.md (or the public
+mirror at https://github.com/Vollol1/gag-atlas/blob/main/docs/decisions/ADR-007-secrets-management.md)
 for secrets handling.
 """
 
@@ -46,7 +48,7 @@ def _load_dotenv_if_available() -> None:
 def _parse_args(args: Optional[list[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="igc-extractor",
-        description="Download IGC flight tracks from dhv-xc.de.",
+        description="Download IGC flight tracks from a supported flight-data platform (default: dhv-xc.de).",
     )
     parser.add_argument(
         "--flights",
@@ -307,9 +309,24 @@ def _print_dry_run_preview(
     print("No files were downloaded or written to the database in this run.")
 
 
+_DISCLAIMER = (
+    "Hinweis: Dieses Tool greift mit deinen Credentials auf eine Flugdatenplattform zu. "
+    "Du nutzt es auf eigene Gefahr. Ein Account-Bann oder andere Sanktionen seitens der "
+    "Plattform sind möglich. Stelle sicher, dass du die geltenden Nutzungsbedingungen einhältst."
+)
+
+
+def _print_disclaimer() -> None:
+    """Print a short, non-blocking disclaimer at startup."""
+    print(_DISCLAIMER, file=sys.stderr)
+
+
 def main(args: Optional[list[str]] = None) -> int:
     _load_dotenv_if_available()
     parsed = _parse_args(args)
+
+    if not parsed.dry_run:
+        _print_disclaimer()
 
     try:
         username, password = _validate_credentials(parsed)
