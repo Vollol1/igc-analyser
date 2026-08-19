@@ -4,6 +4,30 @@ Ein schlankes Python-CLI-Tool zum persönlichen Herunterladen von Paragliding-Fl
 
 > **Schnellstart für neue Nutzer:** [`docs/runbooks/quickstart.md`](./docs/runbooks/quickstart.md) – eine Schritt-für-Schritt-Anleitung für Windows, macOS und Linux.
 
+## Inhaltsverzeichnis
+
+- [⚠️ Hinweis zur Nutzung](#hinweis-zur-nutzung)
+- [Zweck](#zweck)
+- [Ordnerstruktur](#ordnerstruktur)
+- [Installation](#installation)
+- [Aufrufbeispiele](#aufrufbeispiele)
+  - [Hilfe anzeigen](#hilfe-anzeigen)
+  - [Trockenlauf](#trockenlauf)
+  - [Alle Flüge herunterladen](#alle-flüge-herunterladen)
+  - [Nur die neuesten N Flüge herunterladen](#nur-die-neuesten-n-flüge-herunterladen)
+  - [Lauf fortsetzen](#lauf-fortsetzen)
+  - [Credentials über die Kommandozeile überschreiben](#credentials-über-die-kommandozeile-überschreiben)
+  - [Flugliste als JSONL extrahieren](#flugliste-als-jsonl-extrahieren)
+  - [IGC-Dateien als ZIP exportieren](#igc-dateien-als-zip-exportieren)
+  - [Interaktive Karte exportieren](#interaktive-karte-exportieren)
+- [Credentials / Secrets](#credentials--secrets)
+- [Import & Validierung der heruntergeladenen Flüge](#import--validierung-der-heruntergeladenen-flüge)
+  - [Was validiert wird](#was-validiert-wird)
+  - [Ausgabe](#ausgabe)
+- [Architekturentscheidungen](#architekturentscheidungen)
+- [Agent-Verhalten und Dokumentation](#agent-verhalten-und-dokumentation)
+- [Roadmap](#roadmap)
+
 ## ⚠️ Hinweis zur Nutzung
 
 `igc-extractor` ist ein **inoffizielles, unabhängiges Community-Tool**. Es steht in **keiner Verbindung** zu [dhv-xc.de](https://www.dhv-xc.de), dem Deutschen Hängegleiterverband e.V. (DHV) oder dessen Serviceportal.
@@ -234,6 +258,15 @@ Das erzeugt `data/export/flights_map_<run_id>.html` mit OpenStreetMap-Hintergrun
 (Default: Lokal / XC / Höhenflug), Startplatz, Flugjahr und Gleitschirm
 umschalten. Details und weitere Aufrufbeispiele stehen im
 [Karten-Export-Runbook](docs/runbooks/export-flight-map.md).
+
+> **Tipp:** Die Karte lässt sich lokal öffnen, indem du die generierte HTML-Datei direkt im Browser aufrufst (z. B. per Doppelklick auf `data/export/flights_map_<run_id>.html`). Für eine zuverlässige Darstellung der externen Kartenkacheln kannst du alternativ einen kleinen lokalen Server starten:
+>
+> ```bash
+> cd data/export
+> python -m http.server 8000
+> ```
+>
+> Anschließend ist die Karte unter `http://localhost:8000/flights_map_<run_id>.html` erreichbar.
 
 ## Credentials / Secrets
 
